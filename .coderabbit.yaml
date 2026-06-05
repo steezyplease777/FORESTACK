@@ -1,0 +1,65 @@
+# CodeRabbit configuration for the TanStack Start port of INTERNAL-APP.
+# See https://docs.coderabbit.ai/guides/configure-coderabbit for all options.
+# The GitHub App must be installed on this repository separately — see AGENTS.md.
+
+language: en-US
+early_access: false
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_filters:
+    - "!**/*.gen.ts"
+    - "!**/*.gen.tsx"
+    - "!**/routeTree.gen.ts"
+    - "!**/.output/**"
+    - "!**/dist/**"
+    - "!**/node_modules/**"
+    - "!legacy-source/**"
+    - "!../INTERNAL-APP-NEXT/**"
+  path_instructions:
+    - path: "src/routes/**"
+      instructions: |
+        Verify file-based TanStack Router conventions (createFileRoute path
+        matches the on-disk path, _layout routes use pathless segments, $param
+        names align with useParams consumers). Flag any lingering Next.js App
+        Router patterns ("use client", next/navigation, next/link, next/image,
+        route.ts handlers, Promise<params>). Auth-gated routes should sit under
+        _authed.tsx or t/$companySlug/route.tsx and rely on their beforeLoad
+        guards rather than re-checking sessions inline.
+    - path: "src/server/**"
+      instructions: |
+        Server functions must use createServerFn from @tanstack/react-start
+        with a zod inputValidator (not validator). Auth/tenant checks must run
+        via getSession / requireUser (from src/lib/auth/server-context.ts) and
+        requireCompanyAccess (from src/lib/auth/tenant-context.ts) before any
+        Supabase query. Use createClient() from
+        @/lib/datasource/supabase/server inside handlers — never the browser
+        client.
+    - path: "src/lib/datasource/supabase/**"
+      instructions: |
+        Keep the browser and SSR clients strictly separated:
+          - createClient() from client.ts uses createBrowserClient and the
+            VITE_SUPABASE_* env vars; safe to import in components.
+          - createClient() from server.ts uses createServerClient with
+            getCookies/setCookie from @tanstack/react-start/server; only safe
+            inside server functions, loaders, and beforeLoad hooks.
+        Never import server.ts into browser-only code. Never expose
+        SUPABASE_SERVICE_ROLE_KEY outside server-only modules, and prefer the
+        anon key whenever possible so RLS still applies.
+    - path: "src/features/**/*.tsx"
+      instructions: |
+        Many ported files still carry a temporary `// @ts-nocheck` from the
+        Next.js → TanStack Start migration. Removing it is encouraged as long
+        as the file type-checks; do not silently re-add it. Forms should call
+        Supabase via createClient() from @/lib/datasource/supabase/client.
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+chat:
+  auto_reply: true

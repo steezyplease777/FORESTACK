@@ -1,0 +1,27 @@
+---
+description: Where Forestack apps, routes, and Supabase functions live in this monorepo.
+alwaysApply: true
+---
+
+# Forestack monorepo layout
+
+Open the workspace at the **repo root** (`INTERNAL-APP-TANSTACK/`), not the parent `INTERNAL-APP-STUFF/` folder. The parent folder does not contain `apps/` at its top level.
+
+## Deployable apps
+
+| App | Path | SaaS `/app` routes (studio) |
+| --- | --- | --- |
+| Studio (SaaS portal) | `apps/studio/` | `apps/studio/src/routes/_authed/app/` |
+| Workspace (tenant portal) | `apps/workspace/` | `apps/workspace/src/routes/$companySlug/` |
+
+Shared UI and Supabase clients: `packages/shared/`.
+
+## Supabase
+
+- CLI config: `supabase/config.toml`
+- Edge Functions source: `supabase/functions/` (see `supabase/functions/README.md`)
+- Project ref: `ocisdaeugliixyhcjnkv` (INTERNAL-APPLICATION)
+
+## Git
+
+If the explorer or SCM view looks empty, check that this folder is the workspace root and consider an initial commit so files are tracked (`git status` shows untracked until then).

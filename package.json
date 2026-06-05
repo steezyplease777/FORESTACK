@@ -1,0 +1,28 @@
+{
+  "name": "forestack",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:studio": "npm run dev -w @forestack/studio",
+    "dev:workspace": "npm run dev -w @forestack/workspace",
+    "build": "turbo build",
+    "build:studio": "npm run build -w @forestack/studio",
+    "build:workspace": "npm run build -w @forestack/workspace",
+    "deploy:studio": "npm run deploy -w @forestack/studio",
+    "deploy:workspace": "npm run deploy -w @forestack/workspace",
+    "lint": "eslint",
+    "format": "prettier --check .",
+    "check": "prettier --write . && eslint --fix"
+  },
+  "devDependencies": {
+    "@tanstack/eslint-config": "latest",
+    "prettier": "^3.8.1",
+    "turbo": "^2.5.4",
+    "typescript": "^5.7.2"
+  }
+}

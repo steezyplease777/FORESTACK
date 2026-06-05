@@ -1,0 +1,289 @@
+/* Ported verbatim from INTERNAL-APP-NEXT/src/app/globals.css so the TanStack
+   port renders identically to the legacy Next.js app. If you change this file,
+   change the Next.js one too (or vice versa) until the migration is complete.
+
+   Fonts are self-hosted via @fontsource-variable/* (not next/font/google). The
+   --font-geist-sans / --font-geist-mono custom properties are set on <body>
+   from src/routes/__root.tsx and consumed by the @theme block below. */
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Font variables the @theme block below reads. In the Next.js app these were
+   injected onto <body> as className tokens by next/font/google; here we set
+   them globally from CSS so `var(--font-geist-sans)` always resolves. */
+:root {
+  --font-geist-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-geist-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, monospace;
+
+  /* Width of the docked MyStack panel when it's open. Mirrored from
+     the inline declaration on `<PortalShell>`'s root div so it's
+     globally reachable (e.g. the modal centering wrapper below). */
+  --my-stack-width: 22rem;
+
+  /* How far the viewport "usable" area is inset from the right edge.
+     Defaults to 0 (MyStack closed / not mounted). The `body:has(...)`
+     rule below raises it to `--my-stack-width` when MyStack is open,
+     so full-viewport `fixed inset-0` wrappers can opt in to centering
+     inside the MyStack-adjusted area simply by using
+     `right: var(--my-stack-gutter)`. */
+  --my-stack-gutter: 0px;
+}
+
+/*
+ * Raise `--my-stack-gutter` when the MyStack panel is open. Scoped by
+ * `:has()` so only the "actually open" state triggers it — closed or
+ * unmounted MyStack gives every overlay the full viewport to center
+ * inside. Used by Modal/Sheet/Drawer centering wrappers so modals
+ * visually center in the main-shell area instead of being clipped by
+ * MyStack.
+ */
+body:has([data-my-stack-safe="true"][data-state="open"]) {
+  --my-stack-gutter: var(--my-stack-width);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-invert-foreground: var(--invert-foreground);
+  --color-invert: var(--invert);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning: var(--warning);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
+  --color-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
+  --color-destructive-foreground: var(--destructive-foreground);
+  /*
+   * Fore All sister-brand palette.
+   *
+   * Forestack inherits its visual identity from Fore All so the two
+   * brands feel like a family. Components that need an explicit
+   * brand swatch (logo backgrounds, marketing tiles, accent chips,
+   * empty-state illustrations) reach for these tokens instead of
+   * hard-coding hex values, keeping the palette swap-able from one
+   * file. Pantone refs from the Fore All Branding Guide:
+   *
+   *   marshmallow      Pantone 11-4300 TCX  – canvas
+   *   rose-quartz      Pantone 13-1520 TCX  – soft accent
+   *   hunter           Pantone 19-5511 TCX  – primary
+   *   asparagus        Pantone 12-0104 TCX  – warm border / chip
+   *   jet              Pantone 19-5708 TCX  – ink / foreground
+   *   indigo           Pantone 19-3929 TCX  – cool accent
+   */
+  --color-brand-marshmallow: var(--brand-marshmallow);
+  --color-brand-rose: var(--brand-rose);
+  --color-brand-hunter: var(--brand-hunter);
+  --color-brand-asparagus: var(--brand-asparagus);
+  --color-brand-jet: var(--brand-jet);
+  --color-brand-indigo: var(--brand-indigo);
+}
+
+:root {
+  --radius: 0.625rem;
+  /*
+   * Fore All sister-brand palette (raw swatches). All semantic
+   * tokens below are expressed in terms of these so a brand refresh
+   * lives in one place. See the @theme block above for the Pantone
+   * references and intended usage.
+   */
+  --brand-marshmallow: #F0EEE4;
+  --brand-rose: #F7CACA;
+  --brand-hunter: #335749;
+  --brand-asparagus: #E1DBC9;
+  --brand-jet: #272C2A;
+  --brand-indigo: #4D506C;
+
+  /*
+   * Canvas is Marshmallow — warm cream straight from the Fore All
+   * guide. Distinct from the pure-white card surface so floating
+   * panels (sidebars, My Stack, cards) actually float against the
+   * page.
+   */
+  --background: var(--brand-marshmallow);
+  --foreground: var(--brand-jet);
+  --card: #FFFFFF;
+  --card-foreground: var(--brand-jet);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--brand-jet);
+  --primary: var(--brand-hunter);
+  --primary-foreground: #FFFFFF;
+  --secondary: #F4F2EC;
+  --secondary-foreground: var(--brand-jet);
+  --muted: #F4F2EC;
+  --muted-foreground: #706E66;
+  --accent: #F4F2EC;
+  --accent-foreground: var(--brand-jet);
+  --destructive: #B73B3B;
+  --border: #E5E1D4;
+  --input: #E5E1D4;
+  --ring: var(--brand-hunter);
+  --chart-1: var(--brand-hunter);
+  --chart-2: var(--brand-indigo);
+  --chart-3: var(--brand-rose);
+  --chart-4: var(--brand-asparagus);
+  --chart-5: #5A8F7B;
+  --sidebar: #FBFAF6;
+  --sidebar-foreground: #3A3F3D;
+  --sidebar-primary: var(--brand-hunter);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F4F2EC;
+  --sidebar-accent-foreground: var(--brand-jet);
+  --sidebar-border: #E5E1D4;
+  --sidebar-ring: var(--brand-hunter);
+  --destructive-foreground: var(--color-red-800);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--brand-jet);
+  --invert-foreground: var(--brand-marshmallow);
+}
+
+.dark {
+  /*
+   * Brand swatches stay constant; only the semantic surface tokens
+   * shift for the dark rendering so any component referencing
+   * `var(--brand-*)` keeps the same color across themes.
+   */
+  --brand-marshmallow: #F0EEE4;
+  --brand-rose: #F7CACA;
+  --brand-hunter: #5A8F7B;
+  --brand-asparagus: #E1DBC9;
+  --brand-jet: #272C2A;
+  --brand-indigo: #8B8FB0;
+
+  --background: #14181A;
+  --foreground: #EDEAE0;
+  --card: #1C2123;
+  --card-foreground: #EDEAE0;
+  --popover: #1C2123;
+  --popover-foreground: #EDEAE0;
+  --primary: var(--brand-hunter);
+  --primary-foreground: #FFFFFF;
+  --secondary: #252A2C;
+  --secondary-foreground: #EDEAE0;
+  --muted: #252A2C;
+  --muted-foreground: #9C9A8E;
+  --accent: #252A2C;
+  --accent-foreground: #EDEAE0;
+  --destructive: #E0584C;
+  --border: #2F3537;
+  --input: #2F3537;
+  --ring: var(--brand-hunter);
+  --chart-1: var(--brand-hunter);
+  --chart-2: var(--brand-indigo);
+  --chart-3: var(--brand-rose);
+  --chart-4: var(--brand-asparagus);
+  --chart-5: #8BBAA8;
+  --sidebar: #14181A;
+  --sidebar-foreground: #9C9A8E;
+  --sidebar-primary: #EDEAE0;
+  --sidebar-primary-foreground: #14181A;
+  --sidebar-accent: #1F2426;
+  --sidebar-accent-foreground: #EDEAE0;
+  --sidebar-border: #2F3537;
+  --sidebar-ring: var(--brand-hunter);
+  --destructive-foreground: var(--color-red-600);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-600);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-600);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-600);
+  --invert: var(--brand-marshmallow);
+  --invert-foreground: var(--brand-jet);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/*
+ * Scrollbar / scroll-lock handling while a Radix overlay (Modal /
+ * Sheet / Drawer) is open.
+ *
+ * The company portal uses an "app-shell" layout: `PortalShell`'s root
+ * is `h-dvh overflow-hidden`, so <html> and <body> never have a
+ * scrollbar in the first place. When Radix opens an overlay,
+ * `react-remove-scroll-bar` measures a gap of 0 (since there's no
+ * scrollbar to compensate for) and injects no `margin-right` on
+ * <body>. That means the "dark gutter between MyStack and the right
+ * edge of the viewport" problem simply cannot occur while the
+ * company portal is mounted — no CSS workaround needed here.
+ *
+ * We still defensively zero-out any margin/padding-right and hide
+ * any native scrollbar the lock might spawn so routes OUTSIDE the
+ * company portal (saas admin, auth, marketing) — which DO use
+ * document-level scrolling — don't flash a visible scrollbar-width
+ * layout shift around overlay open/close. The zero-margin keeps the
+ * viewport width stable; hiding the native scrollbar keeps the
+ * `data-scroll-locked` state visually silent. Radix intercepts all
+ * wheel / touch / keyboard scroll while open, so hiding the
+ * scrollbar has no usability cost.
+ */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  scrollbar-gutter: auto !important;
+  scrollbar-width: none;
+}
+html body[data-scroll-locked]::-webkit-scrollbar {
+  display: none;
+}
+html:has(body[data-scroll-locked]) {
+  scrollbar-width: none;
+}
+html:has(body[data-scroll-locked])::-webkit-scrollbar {
+  display: none;
+}

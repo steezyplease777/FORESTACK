@@ -1,0 +1,75 @@
+import { createServerFn } from '@tanstack/react-start'
+
+import {
+  requireWorkOsEnv,
+  workOsApiOrigin,
+} from '@/lib/auth/workos/config'
+import type { WorkOSTokenResponse } from '@/lib/auth/workos/types'
+
+export type HandleWorkOSCallbackInput = {
+  code: string
+  redirectUri: string
+}
+
+export type HandleWorkOSCallbackResult = {
+  tokens: WorkOSTokenResponse
+  /**
+   * TODO (Phase 1): persist `accessToken` in an httpOnly cookie and wire
+   * `createClient({ accessToken })` for SSR. Third-Party Auth does not use
+   * `supabase.auth.setSession` with Supabase-issued refresh tokens.
+   */
+  sessionEstablished: false
+}
+
+/**
+ * Exchanges a WorkOS authorization code for access (and optional refresh) tokens.
+ *
+ * @see https://workos.com/docs/reference/authkit/authentication
+ */
+export const handleWorkOSCallbackFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: HandleWorkOSCallbackInput) => data)
+  .handler(async ({ data }): Promise<HandleWorkOSCallbackResult> => {
+    const env = requireWorkOsEnv()
+    const origin = workOsApiOrigin(env.authDomain)
+
+    const response = await fetch(`${origin}/user_management/authenticate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${env.apiKey}`,
+      },
+      body: JSON.stringify({
+        client_id: env.clientId,
+        grant_type: 'authorization_code',
+        code: data.code,
+        redirect_uri: data.redirectUri,
+      }),
+    })
+
+    if (!response.ok) {
+      const body = await response.text()
+      throw new Error(
+        `WorkOS token exchange failed (${response.status}): ${body}`,
+      )
+    }
+
+    const json = (await response.json()) as {
+      access_token?: string
+      refresh_token?: string
+      user?: { id?: string }
+    }
+
+    const accessToken = json.access_token
+    if (!accessToken) {
+      throw new Error('WorkOS token exchange returned no access_token')
+    }
+
+    return {
+      tokens: {
+        accessToken,
+        refreshToken: json.refresh_token,
+        userId: json.user?.id,
+      },
+      sessionEstablished: false,
+    }
+  })

@@ -1,0 +1,58 @@
+---
+description: Declare symbols unexported in the body of the file, then list all exports in a dedicated section at the end.
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Exports go at the bottom of the file
+
+Write functions, types, constants, hooks, components etc. **without** the
+`export` keyword in the body of the file, then list every public symbol at
+the bottom of the file under a clearly marked "Exports" section. This
+keeps the top of the file focused on imports + implementation, and makes
+the public surface of the module obvious at a glance.
+
+Applies to all hand-written `.ts` / `.tsx` files under `src/**`.
+
+Do **not** restructure auto-generated files (`routeTree.gen.ts`,
+`schema.ts`, etc.) or shadcn/ui primitives that ship with inline exports.
+
+## ❌ Bad
+
+```tsx
+export type WorkspaceTab = 'dashboard' | 'companies' | 'users'
+
+export function WorkspaceShell({ org, tab, children }: Props) {
+  // ...
+}
+
+function TabLink() { /* ... */ }
+```
+
+## ✅ Good
+
+```tsx
+type WorkspaceTab = 'dashboard' | 'companies' | 'users'
+
+function WorkspaceShell({ org, tab, children }: Props) {
+  // ...
+}
+
+function TabLink() { /* ... */ }
+
+// ---------------------------------------------------------------------
+// Exports
+// ---------------------------------------------------------------------
+
+export { WorkspaceShell }
+export type { WorkspaceTab }
+```
+
+## Notes
+
+- Use `export { Foo }` for values and `export type { Bar }` for types so
+  `isolatedModules` / `verbatimModuleSyntax` stay happy.
+- Re-exports from other files (`export { x } from './x'`) are fine at
+  the top of barrel / index files — they are the file's purpose.
+- Default exports follow the same rule: declare `const Page = ...`
+  first, then `export default Page` at the bottom.
