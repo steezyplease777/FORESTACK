@@ -82,7 +82,7 @@ async function loadOrgIdpFromDb(
   const row = data as OrganizationIdentityProviderRow
 
   if (isWorkOsProvider(row)) {
-    if (!isWorkOsConfigured()) {
+    if (!isWorkOsConfigured() || !isWorkOsAuthEnabled()) {
       return { kind: 'supabase_fallback' }
     }
     const connection = workOsConfigFromRow(
