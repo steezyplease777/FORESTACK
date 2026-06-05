@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { createServerFn } from '@tanstack/react-start'
 
-import { createClient } from '@/lib/datasource/supabase/server'
+import { createTenantClient } from '@/lib/datasource/supabase/tenant-client.server'
 
 import { normalizeBundleError } from '../shared'
 import type { PmBundle } from './types'
@@ -13,7 +13,7 @@ import type { PmBundle } from './types'
 export const getPmBundle = createServerFn({ method: 'GET' })
   .inputValidator((data: { companySlug: string }) => data)
   .handler(async ({ data }): Promise<PmBundle> => {
-    const supabase = createClient()
+    const supabase = createTenantClient()
     const { data: bundle, error } = await supabase.rpc('get_pm_bundle', {
       p_company_slug: data.companySlug,
     })
