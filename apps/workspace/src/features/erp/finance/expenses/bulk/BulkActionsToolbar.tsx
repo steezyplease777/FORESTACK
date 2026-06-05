@@ -107,14 +107,12 @@ export function BulkActionsToolbar({
   const computeOverflow = React.useCallback((maxWidth?: number) => {
     const toolbar = toolbarRef.current
     const stable = stableRef.current
-    const parent = toolbar?.parentElement
     if (!toolbar || !stable || availableActions.length === 0) {
       setOverflowing(new Set())
       return
     }
 
-    const resolvedMaxWidth =
-      maxWidth ?? parent?.clientWidth ?? toolbar.clientWidth
+    const resolvedMaxWidth = maxWidth ?? toolbar.clientWidth
     const stableWidth = stable.offsetWidth
     const available =
       resolvedMaxWidth - stableWidth - TOOLBAR_PADDING_PX - TOOLBAR_GAP_PX
@@ -150,12 +148,11 @@ export function BulkActionsToolbar({
 
   React.useLayoutEffect(() => {
     const toolbar = toolbarRef.current
-    const parent = toolbar?.parentElement
-    if (!toolbar || !parent) return
+    if (!toolbar) return
 
     const run = () => {
       requestAnimationFrame(() => {
-        computeOverflow(parent.clientWidth)
+        computeOverflow(toolbar.clientWidth)
       })
     }
 
@@ -164,7 +161,7 @@ export function BulkActionsToolbar({
     const ro = new ResizeObserver(() => {
       run()
     })
-    ro.observe(parent)
+    ro.observe(toolbar)
 
     return () => ro.disconnect()
   }, [computeOverflow, selectedCount, totalMatchingCount, safeActions.length])
@@ -298,7 +295,7 @@ export function BulkActionsToolbar({
         ref={toolbarRef}
         role="toolbar"
         aria-label="Bulk actions"
-        className="bulk-actions-toolbar relative inline-flex w-full max-w-full flex-nowrap items-center gap-2 whitespace-nowrap rounded-2xl border border-white/10 bg-foreground px-4 py-2.5 text-background shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-300"
+        className="bulk-actions-toolbar relative inline-flex w-max max-w-[50svw] flex-nowrap items-center gap-2 whitespace-nowrap rounded-2xl border border-white/10 bg-foreground px-4 py-2.5 text-background shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-300"
       >
         <div
           ref={stableRef}
@@ -318,7 +315,7 @@ export function BulkActionsToolbar({
           </button>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2">
+        <div className="flex shrink-0 flex-nowrap items-center gap-2">
           {inlineActions.map((id) => renderActionButton(id))}
 
           {overflowActions.length > 0 ? (
