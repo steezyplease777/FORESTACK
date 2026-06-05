@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { createServerFn } from '@tanstack/react-start'
 
-import { createTenantClient } from '@/lib/datasource/supabase/tenant-client.server'
+import { getTenantSupabase } from '@/lib/data/_shared/tenant-supabase'
 
 import { normalizeBundleError } from '../shared'
 import type { WmsBundle } from './types'
@@ -15,13 +15,13 @@ import type { WmsBundle } from './types'
  * top level (not inside a factory) so TanStack Start's compiler
  * plugin can statically extract the handler to server-only code. If
  * this call is wrapped in another function the handler silently
- * leaks into the client bundle, `createTenantClient()` runs in the browser
+ * leaks into the client bundle, `getTenantSupabase()` runs in the browser
  * without the session/WorkOS cookie, and the RPC raises `not_authenticated`.
  */
 export const getWmsBundle = createServerFn({ method: 'GET' })
   .inputValidator((data: { companySlug: string }) => data)
   .handler(async ({ data }): Promise<WmsBundle> => {
-    const supabase = createTenantClient()
+    const supabase = await getTenantSupabase()
     const { data: bundle, error } = await supabase.rpc('get_wms_bundle', {
       p_company_slug: data.companySlug,
     })

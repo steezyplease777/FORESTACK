@@ -6,7 +6,7 @@ import { getErpBundle } from '@/lib/data/portal-bundles/erp/server'
 import { getPlmBundle } from '@/lib/data/portal-bundles/plm/server'
 import { getPmBundle } from '@/lib/data/portal-bundles/pm/server'
 import { getWmsBundle } from '@/lib/data/portal-bundles/wms/server'
-import { createTenantClient } from '@/lib/datasource/supabase/tenant-client.server'
+import { getTenantSupabase } from '@/lib/data/_shared/tenant-supabase'
 
 import { resolveDashboardPortals } from './portals'
 import type { DashboardBundle, DashboardPortalSlug, OrdersDashboardData } from './types'
@@ -23,7 +23,7 @@ export const getOrdersDashboard = createServerFn({ method: 'GET' })
   .inputValidator((data: { companySlug: string }) => data)
   .handler(async ({ data }): Promise<OrdersDashboardData> => {
     const { companySlug } = data
-    const supabase = createTenantClient()
+    const supabase = await getTenantSupabase()
 
     const { data: bundle, error } = await supabase.rpc(
       'get_orders_dashboard',
