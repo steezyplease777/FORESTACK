@@ -77,14 +77,14 @@ Same 14 column ids (with `relatedProject` not `project`). Widths/labels match So
 | `paymentType` | `PaymentTypeCell.tsx` | Yes | **No** (badge + chevron only) |
 | `amount` | `AmountCell.tsx` | Yes | **Yes** |
 | `title` | `TitleCell.tsx` | Yes | **Yes** (no hover Open) |
-| `expenseCategory` | Plain `<span>` in `ExpenseAdminTable.tsx` ~L502 | Yes | **No** (`CategoryCell.tsx` exists, **not wired**) |
-| `department` | Plain `<span>` ~L508 | Yes | **No** |
+| `expenseCategory` | `CategoryCell.tsx` (Popover+Command combobox) | Yes | **Yes** |
+| `department` | `DepartmentCell.tsx` (Popover+Command combobox) | Yes | **Yes** |
 | `invoiceDate` | `DateCell.tsx` | Yes | **No** |
 | `submittedAt` | `DateCell.tsx` | Yes | No |
 | `direction` | `DirectionCell.tsx` | Yes | No |
-| `attributes` | `AttributesCell.tsx` (credit-card tiles + ⋯ hover) | No | No |
+| `attributes` | `AttributesCell.tsx` (credit-card tiles + ⋯ HoverCard) | No | No |
 | `documents` | `DocumentsCell.tsx` | No | **Partial** (preview/upload when wired from page) |
-| `invoiceTags` | `TagsCell.tsx` (read-only badges) | No | **No** |
+| `invoiceTags` | `TagsCell.tsx` (multi-select combobox + create + HoverCard) | No | **Yes** |
 | `relatedProject` | Plain `<span>` ~L514 | No | **No** |
 | `vendor` | `VendorCell.tsx` | — | **Yes** but **not in default columns** |
 
@@ -122,13 +122,13 @@ Title · Category · Department · Invoice Due Date · Submitted At · Direction
 | Payment type combobox | `PaymentTypeComboboxCell` | `PaymentTypeCell` read-only | **Missing** (P1) |
 | Amount currency edit | `EditableCurrencyCell` | `AmountCell` | **Done** |
 | Vendor link combobox | `SingleLinkComboboxCell` (vendor N/A in default cols) | `VendorCell` | **Partial** |
-| Category combobox | `SingleLinkComboboxCell` | `CategoryCell` **unwired** | **Missing** (P0 for live) |
-| Department combobox | `SingleLinkComboboxCell` | Plain text | **Missing** (P0 for live) |
+| Category combobox | `SingleLinkComboboxCell` | `CategoryCell` (wired) | **Done** |
+| Department combobox | `SingleLinkComboboxCell` | `DepartmentCell` | **Done** |
 | Project multi-combobox | `ProjectComboboxCell` | Plain text | **Missing** (P2) |
-| Tags combobox + create | `InvoiceTagComboboxCell` | `TagsCell` read-only | **Missing** (P2) |
+| Tags combobox + create | `InvoiceTagComboboxCell` | `TagsCell` editable + create | **Done** |
 | Invoice date picker | `EditableDateCell` | `DateCell` read-only | **Missing** (P1) |
 | Direction badge | `DirectionCell` | `DirectionCell` | **Done** |
-| Attributes tiles | `AttributesCell` + credit card catalog | `AttributesCell` + `getCreditCardsCatalog` | **Done** (~85%) |
+| Attributes tiles | `AttributesCell` + credit card catalog | `AttributesCell` + HoverCard + `getCreditCardsCatalog` | **Done** |
 | Documents upload/drop | `DocumentsCell` + `DocumentUploadDialog` | `DocumentsCell` + dialogs (page wires upload) | **Partial** |
 | Document preview | `DocumentPreviewDialog` | `DocumentPreviewDialog.tsx` | **Partial** |
 | Row ⋯ menu | `RowActionsMenu` + `NavigationAction` (~L6540) | `RowActionsCell` — disabled View/Edit stubs | **Missing** (P0) |
@@ -298,7 +298,7 @@ Forestack: `getCreditCardsCatalog` in `lib/data/erp/expenses/server.ts` (same em
 | Item | Priority | Status |
 |------|----------|--------|
 | Grouped view (`SectionDataFetcher`, `GROUP_FIELD_KEYS`) | **P0** | Missing |
-| Wire `CategoryCell` + department combobox (live has these) | **P0** | Partial (cell exists, unwired) |
+| Wire `CategoryCell` + department combobox (live has these) | **P0** | **Done** |
 | Title hover Open + expense detail route/modal | **P0** | Missing |
 | Row actions menu (`RowActionsMenu` → Open/Delete navigation) | **P0** | Partial (shell only) |
 | Select all matching + deselect all (`selectAllMatching`) | **P1** | Missing |

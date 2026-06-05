@@ -2,11 +2,10 @@ import * as React from 'react'
 import { IconCreditCard, IconDots } from '@tabler/icons-react'
 
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import {
   Table,
   TableBody,
@@ -156,7 +155,7 @@ function AttributeIconTile({
   )
 }
 
-function CreditCardAttributeTooltipContent({
+function CreditCardAttributeHoverContent({
   catalogEntry,
   fallbackLabel,
 }: {
@@ -186,7 +185,7 @@ function CreditCardAttributeTooltipContent({
   )
 }
 
-function UncategorizedAttributesTooltipContent({
+function UncategorizedAttributesHoverContent({
   rows,
 }: {
   rows: UncategorizedAttributeRow[]
@@ -194,7 +193,7 @@ function UncategorizedAttributesTooltipContent({
   if (rows.length === 0) return null
 
   return (
-    <div className="w-[260px] max-w-[min(300px,calc(100vw-2rem))] bg-popover text-left">
+    <div className="w-[260px] max-w-[min(300px,calc(100vw-2rem))] text-left">
       <div className="max-h-[min(180px,32vh)] overflow-auto">
         <Table className="min-w-max">
           <TableHeader>
@@ -228,9 +227,6 @@ function UncategorizedAttributesTooltipContent({
   )
 }
 
-const attributeTooltipClass =
-  'border bg-popover px-2 py-2 text-popover-foreground shadow-md'
-
 type AttributesCellProps = {
   attributes: Record<string, unknown>
   creditCardsById?: Map<string, CreditCardCatalogEntry>
@@ -252,64 +248,64 @@ export function AttributesCell({
   const overflow = cardRefs.length - ATTRIBUTES_CELL_VISIBLE
 
   return (
-    <TooltipProvider delayDuration={50}>
-      <div className="flex min-h-8 flex-wrap items-center gap-1">
-        {visible.map((ref, idx) => {
-          const catalogEntry = ref.id ? catalog.get(ref.id) : undefined
-          const tileTitle =
-            catalogEntry?.title || ref.label || (ref.id ? 'Credit card' : 'Card')
+    <div className="flex min-h-8 flex-wrap items-center gap-1">
+      {visible.map((ref, idx) => {
+        const catalogEntry = ref.id ? catalog.get(ref.id) : undefined
+        const tileTitle =
+          catalogEntry?.title || ref.label || (ref.id ? 'Credit card' : 'Card')
 
-          return (
-            <Tooltip key={ref.id || ref.label || idx}>
-              <TooltipTrigger asChild>
-                <AttributeIconTile
-                  ariaLabel={tileTitle}
-                  icon={<IconCreditCard className="size-3.5 pointer-events-none" stroke={2} />}
-                />
-              </TooltipTrigger>
-              <TooltipContent
-                side="top"
-                align="start"
-                sideOffset={4}
-                className={attributeTooltipClass}
-              >
-                <CreditCardAttributeTooltipContent
-                  catalogEntry={catalogEntry}
-                  fallbackLabel={ref.label}
-                />
-              </TooltipContent>
-            </Tooltip>
-          )
-        })}
-
-        {overflow > 0 ? (
-          <span
-            className="text-[11px] font-medium text-foreground"
-            title={`${overflow} more card${overflow === 1 ? '' : 's'}`}
-          >
-            +{overflow}
-          </span>
-        ) : null}
-
-        {uncategorized.length > 0 ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
+        return (
+          <HoverCard key={ref.id || ref.label || idx} openDelay={50} closeDelay={50}>
+            <HoverCardTrigger asChild>
               <AttributeIconTile
-                ariaLabel={`${uncategorized.length} other attribute${uncategorized.length === 1 ? '' : 's'}`}
-                icon={<IconDots className="size-3.5 pointer-events-none" stroke={2} />}
+                ariaLabel={tileTitle}
+                icon={<IconCreditCard className="size-3.5 pointer-events-none" stroke={2} />}
               />
-            </TooltipTrigger>
-            <TooltipContent
+            </HoverCardTrigger>
+            <HoverCardContent
               side="top"
               align="start"
               sideOffset={4}
-              className={attributeTooltipClass}
+              className="z-[200] w-auto border p-2 shadow-md"
+              onPointerDown={(e) => e.stopPropagation()}
             >
-              <UncategorizedAttributesTooltipContent rows={uncategorized} />
-            </TooltipContent>
-          </Tooltip>
-        ) : null}
-      </div>
-    </TooltipProvider>
+              <CreditCardAttributeHoverContent
+                catalogEntry={catalogEntry}
+                fallbackLabel={ref.label}
+              />
+            </HoverCardContent>
+          </HoverCard>
+        )
+      })}
+
+      {overflow > 0 ? (
+        <span
+          className="text-[11px] font-medium text-foreground"
+          title={`${overflow} more card${overflow === 1 ? '' : 's'}`}
+        >
+          +{overflow}
+        </span>
+      ) : null}
+
+      {uncategorized.length > 0 ? (
+        <HoverCard openDelay={50} closeDelay={50}>
+          <HoverCardTrigger asChild>
+            <AttributeIconTile
+              ariaLabel={`${uncategorized.length} other attribute${uncategorized.length === 1 ? '' : 's'}`}
+              icon={<IconDots className="size-3.5 pointer-events-none" stroke={2} />}
+            />
+          </HoverCardTrigger>
+          <HoverCardContent
+            side="top"
+            align="start"
+            sideOffset={4}
+            className="z-[200] w-auto border p-2 shadow-md"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <UncategorizedAttributesHoverContent rows={uncategorized} />
+          </HoverCardContent>
+        </HoverCard>
+      ) : null}
+    </div>
   )
 }

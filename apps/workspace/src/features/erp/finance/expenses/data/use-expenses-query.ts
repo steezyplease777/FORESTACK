@@ -1,5 +1,6 @@
 export {
   useBulkExpenseUpdate,
+  useCreateExpenseTag,
   useCreditCardsCatalog,
   useExpenseCategories,
   useExpenseDepartmentOptions,

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
-import { useExpenseCategories } from '../data/use-expenses-query'
+import { useExpenseDepartmentOptions } from '../data/use-expenses-query'
 import { useExpenseUpdate } from '../data/use-expense-update'
 import type { ExpenseRow } from '../ExpenseAdminTable.types'
 import {
@@ -20,45 +20,49 @@ import {
   usePopoverTriggerProtection,
 } from './combobox-shared'
 
-type CategoryCellProps = {
+type DepartmentCellProps = {
   row: ExpenseRow
   companyId: string
   readOnly?: boolean
 }
 
-export function CategoryCell({ row, companyId, readOnly }: CategoryCellProps) {
+export function DepartmentCell({ row, companyId, readOnly }: DepartmentCellProps) {
   const update = useExpenseUpdate(companyId)
-  const categoriesQuery = useExpenseCategories(companyId)
-  const categories = categoriesQuery.data ?? []
+  const departmentsQuery = useExpenseDepartmentOptions(companyId)
+  const departments = departmentsQuery.data ?? []
 
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
   const { triggerProps, contentProps } = usePopoverTriggerProtection()
 
-  const optimistic = useOptimisticDisplay(row.expenseCategoryId)
-  const displayId = optimistic.display
-  const displayLabel =
-    categories.find((c) => c.id === displayId)?.name ?? row.expenseCategory
+  const optimistic = useOptimisticDisplay(row.departmentValue)
+  const displayValue = optimistic.display
+  const displayLabel = displayValue
+    ? displayValue
+        .toLowerCase()
+        .replace(/([^\s\-/&(.]+)/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))
+    : ''
 
   const options = React.useMemo(() => {
     const needle = search.trim().toLowerCase()
-    if (!needle) return categories
-    return categories.filter((c) => c.name.toLowerCase().includes(needle))
-  }, [categories, search])
+    const base = departments.map((value) => ({ id: value, label: value }))
+    if (!needle) return base
+    return base.filter((opt) => opt.label.toLowerCase().includes(needle))
+  }, [departments, search])
 
-  const selectCategory = (categoryId: string | null) => {
-    if (categoryId === row.expenseCategoryId) {
+  const selectDepartment = (value: string | null) => {
+    if (value === row.departmentValue) {
       setOpen(false)
       return
     }
-    optimistic.apply(categoryId)
+    optimistic.apply(value)
     update.mutate(
-      { id: row.id, patch: { category_id: categoryId } },
+      { id: row.id, patch: { department: value } },
       {
-        onSuccess: () => toast.success('Category updated'),
+        onSuccess: () => toast.success('Department updated'),
         onError: (err) => {
           optimistic.revert()
-          toast.error('Failed to update category', {
+          toast.error('Failed to update department', {
             description: err instanceof Error ? err.message : undefined,
           })
         },
@@ -67,10 +71,10 @@ export function CategoryCell({ row, companyId, readOnly }: CategoryCellProps) {
     setOpen(false)
   }
 
-  if (readOnly || categories.length === 0) {
+  if (readOnly) {
     return (
       <span className="block truncate text-sm text-foreground">
-        {row.expenseCategory || '—'}
+        {row.department || '—'}
       </span>
     )
   }
@@ -84,7 +88,7 @@ export function CategoryCell({ row, companyId, readOnly }: CategoryCellProps) {
           type="button"
           role="combobox"
           disabled={update.isPending}
-          title={displayLabel || 'Select category'}
+          title={displayLabel || 'Select department'}
           className={cn(
             'flex min-h-6 w-full min-w-0 items-center justify-between gap-1 rounded px-1 text-left text-sm font-medium',
             'text-foreground transition-colors hover:bg-muted/50',
@@ -104,48 +108,48 @@ export function CategoryCell({ row, companyId, readOnly }: CategoryCellProps) {
       <PopoverContent
         {...contentProps}
         align="start"
-        className="z-[200] w-[300px] p-2"
+        className="z-[200] w-[280px] p-2"
       >
         <Input
-          placeholder="Search category..."
+          placeholder="Search department..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="mb-2 h-8 text-sm"
         />
         <div className="max-h-56 overflow-auto">
-          {categoriesQuery.isLoading ? (
+          {departmentsQuery.isLoading ? (
             <div className="py-4 text-center text-sm text-muted-foreground">
               Loading...
             </div>
           ) : options.length === 0 ? (
             <div className="py-4 text-center text-sm text-muted-foreground">
-              No categories found.
+              No departments found.
             </div>
           ) : (
             <div className="flex flex-col gap-0.5">
-              {row.expenseCategoryId ? (
+              {row.departmentValue ? (
                 <button
                   type="button"
                   className="rounded px-2 py-1.5 text-left text-sm text-muted-foreground hover:bg-muted"
-                  onClick={() => selectCategory(null)}
+                  onClick={() => selectDepartment(null)}
                 >
                   Clear
                 </button>
               ) : null}
-              {options.map((category) => (
+              {options.map((opt) => (
                 <button
-                  key={category.id}
+                  key={opt.id}
                   type="button"
                   className="flex items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-muted"
-                  onClick={() => selectCategory(category.id)}
+                  onClick={() => selectDepartment(opt.id)}
                 >
                   <IconCheck
                     className={cn(
                       'size-4 shrink-0',
-                      displayId === category.id ? 'opacity-100' : 'opacity-0',
+                      row.departmentValue === opt.id ? 'opacity-100' : 'opacity-0',
                     )}
                   />
-                  <span className="truncate">{category.name}</span>
+                  <span className="truncate">{opt.label}</span>
                 </button>
               ))}
             </div>

@@ -13,7 +13,9 @@ import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { AmountCell } from './cells/AmountCell'
 import { AttributesCell } from './cells/AttributesCell'
+import { CategoryCell } from './cells/CategoryCell'
 import { DateCell } from './cells/DateCell'
+import { DepartmentCell } from './cells/DepartmentCell'
 import { DirectionCell } from './cells/DirectionCell'
 import { DocumentsCell } from './cells/DocumentsCell'
 import { DocumentUploadDialog } from './documents/DocumentUploadDialog'
@@ -508,15 +510,11 @@ function ExpenseCell({
       )
     case 'expenseCategory':
       return (
-        <span className="block truncate text-sm text-foreground">
-          {row.expenseCategory || '—'}
-        </span>
+        <CategoryCell row={row} companyId={companyId} readOnly={readOnly} />
       )
     case 'department':
       return (
-        <span className="block truncate text-sm text-foreground">
-          {row.department || '—'}
-        </span>
+        <DepartmentCell row={row} companyId={companyId} readOnly={readOnly} />
       )
     case 'relatedProject':
       return (
@@ -525,7 +523,9 @@ function ExpenseCell({
         </span>
       )
     case 'invoiceTags':
-      return <TagsCell row={row} />
+      return (
+        <TagsCell row={row} companyId={companyId} readOnly={readOnly} />
+      )
     case 'documents':
       return (
         <DocumentsCell

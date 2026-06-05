@@ -126,6 +126,10 @@ export type ExpenseUpdatePatch = {
   status_id?: string | null
   vendor_id?: string | null
   category_id?: string | null
+  /** Stored in `attributes.department` (merged server-side). */
+  department?: string | null
+  /** Postgres `text[]` on `erp_expenses.tags`. */
+  tags?: string[] | null
 }
 
 export type { CreditCardCatalogEntry } from './credit-card-catalog'

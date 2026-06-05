@@ -273,14 +273,56 @@ export const updateExpenseFn = createServerFn({ method: 'POST' })
   )
   .handler(async ({ data }): Promise<ExpenseRecord> => {
     const { supabase } = await requireTenantSupabase()
+    const patch: Record<string, unknown> = { ...data.patch }
+
+    if ('department' in data.patch) {
+      const { data: current, error: fetchError } = await supabase
+        .from('erp_expenses')
+        .select('attributes')
+        .eq('id', data.id)
+        .single()
+      if (fetchError) throw new Error(fetchError.message)
+
+      const attrs = {
+        ...((current?.attributes as Record<string, unknown> | null) ?? {}),
+      }
+      const dept = data.patch.department
+      if (dept == null || dept === '') {
+        delete attrs.department
+      } else {
+        attrs.department = dept
+      }
+      patch.attributes = attrs
+      delete patch.department
+    }
+
     const { data: row, error } = await supabase
       .from('erp_expenses')
-      .update(data.patch)
+      .update(patch)
       .eq('id', data.id)
       .select(EXPENSE_SELECT)
       .single()
     if (error) throw new Error(error.message)
     return row as unknown as ExpenseRecord
+  })
+
+export const createExpenseTagFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { companyId: string; name: string }) => data)
+  .handler(async ({ data }): Promise<ExpenseTag> => {
+    const { supabase } = await requireTenantSupabase()
+    const name = data.name.trim()
+    if (!name) throw new Error('Tag name is required')
+
+    const { data: row, error } = await supabase
+      .from('erp_expense_tags')
+      .insert({
+        name,
+        company_id: data.companyId,
+      })
+      .select('id,name,company_id')
+      .single()
+    if (error) throw new Error(error.message)
+    return row as ExpenseTag
   })
 
 export type BulkUpdateExpensesResult = {

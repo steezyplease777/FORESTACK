@@ -29,6 +29,7 @@ import {
 } from './queries'
 import {
   bulkUpdateExpensesFn,
+  createExpenseTagFn,
   signExpenseDocumentUrls,
   updateExpenseFn,
   uploadExpenseDocument,
@@ -147,6 +148,17 @@ export function useExpenseUpdate(companyId: string) {
     mutationFn: (input: { id: string; patch: ExpenseUpdatePatch }) =>
       updateExpenseFn({ data: input }),
     onSuccess: () => invalidateErpExpenses(qc, companyId),
+  })
+}
+
+export function useCreateExpenseTag(companyId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (name: string) =>
+      createExpenseTagFn({ data: { companyId, name } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: expenseKeys.tags(companyId) })
+    },
   })
 }
 
