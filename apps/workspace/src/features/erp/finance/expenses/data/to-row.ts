@@ -45,10 +45,17 @@ export function toExpenseRow(
 
   const documents = Array.isArray(rec.documents) ? rec.documents : []
 
+  const submittedByRaw =
+    typeof attrs.softr_submitted_by_name === 'string'
+      ? attrs.softr_submitted_by_name.trim()
+      : ''
+
   return {
     id: rec.id,
     raw: rec,
     title: rec.title ?? '',
+    submittedBy: submittedByRaw ? toTitleCase(submittedByRaw) : '',
+    submittedByAvatar: '',
     status: rec.status?.name ?? '',
     statusId: rec.status_id ?? rec.status?.id ?? null,
     statusColor: rec.status?.color ?? null,

@@ -5,6 +5,7 @@ import type {
 } from '@/lib/data/erp/expenses/types'
 
 export type ExpenseTableColumnId =
+  | 'submittedBy'
   | 'title'
   | 'status'
   | 'amount'
@@ -80,6 +81,8 @@ export type ExpenseTagEntry = { id: string; label: string }
 export type ExpenseRow = {
   id: string
   title: string
+  submittedBy: string
+  submittedByAvatar: string
   status: string
   statusId: string | null
   statusColor: string | null

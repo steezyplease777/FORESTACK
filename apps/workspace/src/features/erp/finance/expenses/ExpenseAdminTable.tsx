@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { AmountCell } from './cells/AmountCell'
@@ -23,9 +24,14 @@ import { DateCell } from './cells/DateCell'
 import { DocumentsCell } from './cells/DocumentsCell'
 import { PaymentTypeCell } from './cells/PaymentTypeCell'
 import { StatusCell } from './cells/StatusCell'
+import { SubmittedByCell } from './cells/SubmittedByCell'
 import { TagsCell } from './cells/TagsCell'
 import { TitleCell } from './cells/TitleCell'
 import { VendorCell } from './cells/VendorCell'
+import {
+  EXPENSE_COLUMN_DEFS,
+  expenseTableMinWidth,
+} from './config/column-defs'
 import {
   formatExpenseAmount,
   formatExpenseDate,
@@ -36,36 +42,6 @@ import type {
   ExpenseTableColumnId,
   ExpenseTableConfig,
 } from './ExpenseAdminTable.types'
-
-const COLUMN_LABELS: Record<ExpenseTableColumnId, string> = {
-  title: 'Expense',
-  status: 'Status',
-  amount: 'Amount',
-  vendor: 'Vendor',
-  expenseCategory: 'Category',
-  submittedAt: 'Submitted',
-  department: 'Department',
-  relatedProject: 'Project',
-  invoiceTags: 'Tags',
-  documents: 'Documents',
-  paymentType: 'Payment type',
-  invoiceDate: 'Invoice date',
-}
-
-const COLUMN_WIDTHS: Partial<Record<ExpenseTableColumnId, string>> = {
-  title: 'w-[24%]',
-  status: 'w-[11%]',
-  amount: 'w-[9%]',
-  vendor: 'w-[12%]',
-  expenseCategory: 'w-[11%]',
-  submittedAt: 'w-[9%]',
-  department: 'w-[10%]',
-  relatedProject: 'w-[11%]',
-  invoiceTags: 'w-[10%]',
-  documents: 'w-[9%]',
-  paymentType: 'w-[10%]',
-  invoiceDate: 'w-[9%]',
-}
 
 const SORTABLE_COLUMN_MAP: Partial<
   Record<ExpenseTableColumnId, 'created_at' | 'title' | 'amount'>
@@ -86,21 +62,37 @@ export function ExpenseAdminTable({
   readOnly,
 }: ExpenseAdminTableProps) {
   const columns = config.columns
+  const tableMinWidth = expenseTableMinWidth(columns)
 
   return (
-    <Table className="table-fixed">
+    <Table
+      className="table-fixed border-0"
+      style={{ minWidth: tableMinWidth }}
+    >
+      <colgroup>
+        {columns.map((columnId) => (
+          <col
+            key={columnId}
+            style={{ width: EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100 }}
+          />
+        ))}
+      </colgroup>
       <TableHeader>
-        <TableRow>
+        <TableRow className="hover:bg-transparent">
           {columns.map((columnId) => {
-            const label = COLUMN_LABELS[columnId]
+            const def = EXPENSE_COLUMN_DEFS[columnId]
+            const label = def?.label ?? columnId
             const sortable = config.sortableColumns.includes(columnId)
-            const alignRight = columnId === 'amount'
+            const alignRight = def?.align === 'right'
             const resolvedSort = SORTABLE_COLUMN_MAP[columnId]
 
             return (
               <TableHead
                 key={columnId}
-                className={`${COLUMN_WIDTHS[columnId] ?? ''} ${alignRight ? 'text-right' : ''}`}
+                className={cn(
+                  'bg-muted/30 text-xs font-medium',
+                  alignRight && 'text-right',
+                )}
               >
                 {sortable && resolvedSort ? (
                   <SortableHeader
@@ -121,22 +113,30 @@ export function ExpenseAdminTable({
       </TableHeader>
       <TableBody>
         {rows.map((row) => (
-          <TableRow key={row.id} className="group h-16">
-            {columns.map((columnId) => (
-              <TableCell
-                key={columnId}
-                className={columnId === 'amount' ? 'text-right' : undefined}
-              >
-                <ExpenseCell
-                  columnId={columnId}
-                  row={row}
-                  companyId={companyId}
-                  statuses={statuses}
-                  config={config}
-                  readOnly={readOnly}
-                />
-              </TableCell>
-            ))}
+          <TableRow key={row.id} className="group">
+            {columns.map((columnId) => {
+              const def = EXPENSE_COLUMN_DEFS[columnId]
+              const alignRight = def?.align === 'right'
+
+              return (
+                <TableCell
+                  key={columnId}
+                  className={cn(
+                    'max-w-0 overflow-hidden py-2.5',
+                    alignRight && 'text-right',
+                  )}
+                >
+                  <ExpenseCell
+                    columnId={columnId}
+                    row={row}
+                    companyId={companyId}
+                    statuses={statuses}
+                    config={config}
+                    readOnly={readOnly}
+                  />
+                </TableCell>
+              )
+            })}
           </TableRow>
         ))}
       </TableBody>
@@ -160,6 +160,8 @@ function ExpenseCell({
   readOnly?: boolean
 }) {
   switch (columnId) {
+    case 'submittedBy':
+      return <SubmittedByCell row={row} />
     case 'title':
       return (
         <TitleCell row={row} companyId={companyId} readOnly={readOnly} />
@@ -188,13 +190,13 @@ function ExpenseCell({
       )
     case 'department':
       return (
-        <span className="truncate text-xs text-muted-foreground">
+        <span className="block truncate text-xs text-muted-foreground">
           {row.department || '—'}
         </span>
       )
     case 'relatedProject':
       return (
-        <span className="block max-w-full truncate text-xs text-muted-foreground">
+        <span className="block truncate text-xs text-muted-foreground">
           {row.relatedProject || '—'}
         </span>
       )
@@ -239,7 +241,10 @@ function SortableHeader({
   return (
     <button
       type="button"
-      className={`inline-flex items-center gap-1 ${alignRight ? 'ml-auto' : ''}`}
+      className={cn(
+        'inline-flex items-center gap-1',
+        alignRight && 'ml-auto',
+      )}
       onClick={() => onSortChange(resolvedSort, nextDir)}
     >
       {label}

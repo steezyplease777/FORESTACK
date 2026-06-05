@@ -3,16 +3,12 @@ import type { ExpenseTableConfig } from '../ExpenseAdminTable.types'
 /** Defaults extracted from Softr `expense_admin_table.tsx` editor settings. */
 export const DEFAULT_EXPENSE_TABLE_CONFIG: ExpenseTableConfig = {
   columns: [
-    'title',
+    'submittedBy',
     'status',
+    'paymentType',
     'amount',
-    'vendor',
+    'title',
     'expenseCategory',
-    'department',
-    'relatedProject',
-    'invoiceTags',
-    'submittedAt',
-    'documents',
   ],
   sortableColumns: ['title', 'amount', 'submittedAt'],
   pageSize: 50,

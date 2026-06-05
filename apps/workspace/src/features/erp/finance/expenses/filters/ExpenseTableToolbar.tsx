@@ -83,14 +83,15 @@ export function ExpenseTableToolbar({
   const activeTab = filters.statusId ?? 'all'
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       <Tabs
         value={activeTab}
         onValueChange={(value) =>
           onStatusChange(value === 'all' ? undefined : value)
         }
+        className="min-w-0 flex-1"
       >
-        <TabsList>
+        <TabsList className="h-auto max-w-full flex-wrap">
           <TabsTrigger value="all">
             All
             <Badge variant="secondary" size="xs" className="ml-1.5">

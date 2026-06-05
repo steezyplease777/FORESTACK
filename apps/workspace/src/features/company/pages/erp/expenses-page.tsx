@@ -3,7 +3,13 @@
 import * as React from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useDebouncedCallback } from '@tanstack/react-pacer'
-import { IconChevronLeft, IconChevronRight, IconSearch } from '@tabler/icons-react'
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
+  IconSearch,
+} from '@tabler/icons-react'
 
 import { useCompany } from '@/features/company/tenant-provider'
 import { PageHeader } from '@/components/composites/page-header'
@@ -27,6 +33,7 @@ import {
   useExpenseTags,
   useExpenses,
 } from '@/features/erp/finance/expenses/data/use-expenses-query'
+
 const routeApi = getRouteApi('/$companySlug/_authed/erp/finance/expenses/')
 
 export function ExpensesPage() {
@@ -151,35 +158,17 @@ export function ExpensesPage() {
           }
         />
 
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            {rows.length > 0 ? (
-              <>
-                Showing{' '}
-                <span className="tabular-nums">
-                  {(page - 1) * pageSize + 1}–
-                  {(page - 1) * pageSize + rows.length}
-                </span>{' '}
-                of{' '}
-                <span className="tabular-nums">{total.toLocaleString()}</span>
-                {qFromUrl ? ` · filtered by "${qFromUrl}"` : ''}
-              </>
-            ) : (
-              'No results'
-            )}
-          </p>
-          <div className="relative">
-            <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              className="h-8 w-64 pl-8"
-              placeholder="Search expenses…"
-              value={searchInput}
-              onChange={(e) => {
-                setSearchInput(e.target.value)
-                commitSearch(e.target.value)
-              }}
-            />
-          </div>
+        <div className="relative">
+          <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-9 w-full pl-9"
+            placeholder="Search expenses…"
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value)
+              commitSearch(e.target.value)
+            }}
+          />
         </div>
 
         {isInitialLoading ? (
@@ -207,7 +196,7 @@ export function ExpensesPage() {
         ) : (
           <div
             className={cn(
-              'overflow-hidden rounded-md border',
+              'rounded-md border',
               isPaging ? 'opacity-60 transition-opacity' : undefined,
             )}
           >
@@ -229,36 +218,61 @@ export function ExpensesPage() {
                 })
               }
             />
-          </div>
-        )}
 
-        {pageCount > 1 ? (
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-xs text-muted-foreground tabular-nums">
-              Page {page} of {pageCount} · {pageSize} per page
-            </p>
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1 || isPaging}
-                onClick={() => setPage(Math.max(1, page - 1))}
-              >
-                <IconChevronLeft className="size-4" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= pageCount || isPaging}
-                onClick={() => setPage(Math.min(pageCount, page + 1))}
-              >
-                Next
-                <IconChevronRight className="size-4" />
-              </Button>
+            <div className="flex items-center justify-between gap-4 border-t px-3 py-2 text-xs text-muted-foreground">
+              <span className="tabular-nums">
+                {total.toLocaleString()} rows
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="tabular-nums">
+                  Page {page} of {pageCount}
+                </span>
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    disabled={page <= 1 || isPaging}
+                    onClick={() => setPage(1)}
+                    aria-label="First page"
+                  >
+                    <IconChevronsLeft className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    disabled={page <= 1 || isPaging}
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    aria-label="Previous page"
+                  >
+                    <IconChevronLeft className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    disabled={page >= pageCount || isPaging}
+                    onClick={() => setPage(Math.min(pageCount, page + 1))}
+                    aria-label="Next page"
+                  >
+                    <IconChevronRight className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    disabled={page >= pageCount || isPaging}
+                    onClick={() => setPage(pageCount)}
+                    aria-label="Last page"
+                  >
+                    <IconChevronsRight className="size-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   )
@@ -266,16 +280,20 @@ export function ExpensesPage() {
 
 function TableSkeleton() {
   return (
-    <div className="space-y-3 py-2">
-      {Array.from({ length: 6 }).map((_, i) => (
+    <div className="overflow-hidden rounded-md border">
+      <div className="border-b bg-muted/30 px-3 py-2.5">
+        <div className="h-4 w-full max-w-md animate-pulse rounded bg-muted" />
+      </div>
+      {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-4 rounded-md border bg-muted/40 p-3"
+          className="flex items-center gap-4 border-b px-3 py-3 last:border-b-0"
         >
-          <div className="size-10 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-40 animate-pulse rounded bg-muted" />
           <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-          <div className="ml-auto h-4 w-20 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+          <div className="ml-auto h-4 w-14 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-32 animate-pulse rounded bg-muted" />
         </div>
       ))}
     </div>

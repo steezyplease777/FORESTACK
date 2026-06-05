@@ -2,13 +2,13 @@
 
 import * as React from 'react'
 
-import { Badge } from '@/components/reui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { useExpenseUpdate } from '../data/use-expense-update'
@@ -26,17 +26,16 @@ function resolveStatusStyle(
   label: string,
   dbColor: string | null,
   statusColors: StatusColorConfig[] = [],
-) {
+): React.CSSProperties | undefined {
   const fromConfig = statusColors.find((c) => c.statusName === label)
   if (fromConfig) {
     return {
       color: fromConfig.textColor,
       backgroundColor: fromConfig.backgroundColor,
-      borderColor: fromConfig.backgroundColor,
     }
   }
   if (dbColor) {
-    return { borderColor: dbColor, color: dbColor }
+    return { color: dbColor, backgroundColor: `${dbColor}22` }
   }
   return undefined
 }
@@ -48,10 +47,21 @@ function ExpenseStatusBadge({
   label: string
   style?: React.CSSProperties
 }) {
+  if (!label || label === '—') {
+    return <span className="text-xs text-muted-foreground">—</span>
+  }
+
   return (
-    <Badge variant="outline" size="sm" style={style}>
+    <span
+      className={cn(
+        'inline-flex max-w-full items-center truncate rounded-full px-2.5 py-0.5',
+        'text-[11px] font-semibold leading-tight',
+        !style && 'bg-muted text-muted-foreground',
+      )}
+      style={style}
+    >
       {label}
-    </Badge>
+    </span>
   )
 }
 
@@ -80,7 +90,7 @@ export function StatusCell({
       <DropdownMenuTrigger asChild disabled={update.isPending}>
         <button
           type="button"
-          className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="max-w-full rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ExpenseStatusBadge
             label={row.status || 'Set status'}

@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import * as React from 'react'
-import { IconReceipt } from '@tabler/icons-react'
+import { IconFileText } from '@tabler/icons-react'
 
 import { Input } from '@/components/ui/input'
 
@@ -64,18 +64,9 @@ export function TitleCell({ row, companyId, readOnly }: TitleCellProps) {
     )
 
   return (
-    <div className="flex min-w-0 items-center gap-3">
-      <div className="flex size-11 shrink-0 items-center justify-center rounded-md border bg-gradient-to-br from-muted to-muted/40 text-muted-foreground">
-        <IconReceipt className="size-4" />
-      </div>
-      <div className="min-w-0">
-        {titleContent}
-        {row.expenseCategory ? (
-          <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-            {row.expenseCategory}
-          </div>
-        ) : null}
-      </div>
+    <div className="flex min-w-0 items-center gap-2">
+      <IconFileText className="size-4 shrink-0 text-amber-500" />
+      <div className="min-w-0 flex-1">{titleContent}</div>
     </div>
   )
 }
