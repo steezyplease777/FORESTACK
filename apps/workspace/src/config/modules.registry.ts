@@ -110,8 +110,8 @@ const MODULE_ENTRIES: ModuleRegistryEntry[] = [
   },
   {
     id: "erp",
-    name: "Enterprise Resource Planning",
-    shortLabel: "Resource Planning",
+    name: "ERP",
+    shortLabel: "ERP",
     description: "Purchase orders, vendors, and sales channels",
     icon: IconFileInvoice,
     slug: "erp",
