@@ -62,11 +62,6 @@ export const DEFAULT_EXPENSE_TABLE_CONFIG: ExpenseTableConfig = {
   bulkActionsEnabled: true,
   bulkActions: [
     {
-      label: 'Change status',
-      actionType: 'changeStatus',
-      style: 'primary',
-    },
-    {
       label: 'Export',
       actionType: 'export',
       style: 'secondary',

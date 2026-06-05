@@ -294,14 +294,12 @@ export function ExpensesPage() {
 
             {bulkEnabled && bulk.selectedCount > 0 ? (
               <div className="pointer-events-none absolute inset-x-0 bottom-3 z-50 flex justify-center px-4">
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto w-full max-w-full">
                   <BulkActionsToolbar
                     selectedCount={bulk.selectedCount}
                     selectedIds={bulk.selectedIdList}
                     totalMatchingCount={total}
                     bulkActions={tableConfig.bulkActions ?? []}
-                    statuses={statuses}
-                    statusColors={tableConfig.statusColors}
                     isLoading={bulk.isBulkLoading}
                     onClear={bulk.clearSelection}
                     onSelectAllMatching={() => {
@@ -309,7 +307,6 @@ export function ExpensesPage() {
                         description: `Would select all ${total.toLocaleString()} matching rows.`,
                       })
                     }}
-                    onChangeStatus={bulk.handleChangeStatus}
                     onExport={bulk.handleExport}
                     onDelete={bulk.handleDelete}
                   />
