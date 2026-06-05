@@ -172,7 +172,7 @@ export function ExpenseFilterChips({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 border-b bg-muted/20 px-3 py-2">
+    <div className="flex flex-wrap items-center gap-1.5 bg-muted/20 px-3 py-2">
       {chips}
       <Button
         type="button"

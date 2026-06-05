@@ -180,11 +180,11 @@ export function ExpensesPage() {
   })
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col p-4 lg:p-6">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
       {isInitialLoading ? (
         <TableSkeleton />
       ) : expensesQuery.error ? (
-        <div className="rounded-md border border-destructive/20 bg-destructive/5 p-4">
+        <div className="m-4 rounded-md border border-destructive/20 bg-destructive/5 p-4 lg:m-6">
           <p className="text-sm font-medium text-destructive">
             Couldn't load data
           </p>
@@ -195,7 +195,7 @@ export function ExpensesPage() {
           </p>
         </div>
       ) : rows.length === 0 ? (
-        <div className="overflow-hidden rounded-md border">
+        <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden bg-background">
           <ExpenseTableToolbar
             companyId={companyId}
             filters={filters}
@@ -233,7 +233,7 @@ export function ExpensesPage() {
       ) : (
         <div
           className={cn(
-            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-md border bg-card',
+            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden bg-background',
             isPaging ? 'opacity-60 transition-opacity' : undefined,
           )}
         >
@@ -315,7 +315,7 @@ export function ExpensesPage() {
             ) : null}
           </div>
 
-          <footer className="expense-table-footer mt-auto flex shrink-0 items-center justify-between gap-4 border-t border-border bg-muted/30 px-3.5 py-1.5 text-xs text-muted-foreground">
+          <footer className="expense-table-footer mt-auto flex shrink-0 items-center justify-between gap-4 bg-muted/30 px-3.5 py-1.5 text-xs text-muted-foreground">
             <span className="tabular-nums">
               {bulkEnabled && bulk.selectedCount > 0
                 ? `${bulk.selectedCount.toLocaleString()} of ${total.toLocaleString()} rows selected`
@@ -377,14 +377,14 @@ export function ExpensesPage() {
 
 function TableSkeleton() {
   return (
-    <div className="overflow-hidden rounded-md border">
-      <div className="border-b px-3 py-2">
+    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden bg-background">
+      <div className="px-3 py-2">
         <div className="h-8 w-full max-w-xl animate-pulse rounded bg-muted" />
       </div>
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-4 border-b px-3 py-3 last:border-b-0"
+          className="flex items-center gap-4 px-3 py-3"
         >
           <div className="size-4 animate-pulse rounded bg-muted" />
           <div className="h-4 w-24 animate-pulse rounded bg-muted" />
