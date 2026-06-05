@@ -76,11 +76,11 @@ const rowSelectedBg =
 /** Sticky right actions column — solid bg + left edge so scrolled cells don't bleed through. */
 const actionsThClass = cn(
   thClass,
-  'sticky top-0 right-0 z-30 border-l border-r-0 border-border text-center',
+  'sticky top-0 right-0 z-30 border-l border-r-0 border-border px-0 py-0 text-center align-middle',
 )
 const actionsTdClass = cn(
   tdClass,
-  'sticky right-0 z-20 border-l border-r-0 border-border text-center',
+  'sticky right-0 z-20 border-l border-r-0 border-border px-0 text-center align-middle',
   rowHoverBg,
 )
 
