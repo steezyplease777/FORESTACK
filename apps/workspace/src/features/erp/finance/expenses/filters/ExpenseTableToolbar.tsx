@@ -32,8 +32,8 @@ export function ExpenseTableToolbar({
       <div className="relative">
         <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          className="h-8 w-56 pl-8"
-          placeholder="Search title…"
+          className="h-8 w-64 pl-8"
+          placeholder="Search expenses…"
           value={filters.q}
           onChange={(e) => onSearchChange(e.target.value)}
         />

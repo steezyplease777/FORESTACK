@@ -10,6 +10,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/composites/data-table'
 import { EmptyState } from '@/components/composites/empty-state'
 import { Button } from '@/components/ui/button'
+import { CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { totalPages } from '@/lib/data/_shared/pagination'
 
 import { AmountCell } from './cells/AmountCell'
@@ -138,31 +140,51 @@ export function ExpenseAdminTable({
           return {
             id: columnId,
             header,
-            cell: ({ row }) => row.original.vendor || '—',
+            cell: ({ row }) => (
+              <span className="text-muted-foreground">
+                {row.original.vendor || '—'}
+              </span>
+            ),
           }
         case 'expenseCategory':
           return {
             id: columnId,
             header,
-            cell: ({ row }) => row.original.expenseCategory || '—',
+            cell: ({ row }) => (
+              <span className="text-muted-foreground">
+                {row.original.expenseCategory || '—'}
+              </span>
+            ),
           }
         case 'department':
           return {
             id: columnId,
             header,
-            cell: ({ row }) => row.original.department || '—',
+            cell: ({ row }) => (
+              <span className="text-muted-foreground">
+                {row.original.department || '—'}
+              </span>
+            ),
           }
         case 'relatedProject':
           return {
             id: columnId,
             header,
-            cell: ({ row }) => row.original.relatedProject || '—',
+            cell: ({ row }) => (
+              <span className="text-muted-foreground">
+                {row.original.relatedProject || '—'}
+              </span>
+            ),
           }
         case 'submittedAt':
           return {
             id: columnId,
             header,
-            cell: ({ row }) => formatExpenseDate(row.original.submittedAt),
+            cell: ({ row }) => (
+              <span className="text-muted-foreground">
+                {formatExpenseDate(row.original.submittedAt)}
+              </span>
+            ),
           }
         default:
           return {
@@ -183,9 +205,9 @@ export function ExpenseAdminTable({
   ])
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground tabular-nums">
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+        <p className="text-sm text-muted-foreground tabular-nums">
           {rows.length > 0 ? (
             <>
               Showing{' '}
@@ -211,51 +233,70 @@ export function ExpenseAdminTable({
         />
       </div>
 
-      {isInitialLoading ? (
-        <p className="py-12 text-center text-sm text-muted-foreground">
-          Loading expenses…
-        </p>
-      ) : rows.length === 0 ? (
-        <EmptyState
-          title="No expenses found"
-          description={
-            filters.q || filters.statusId
-              ? 'Try adjusting your filters.'
-              : 'Expenses will appear here once created.'
-          }
-        />
-      ) : (
-        <div className={isPaging ? 'opacity-60 transition-opacity' : undefined}>
-          <DataTable columns={columns} data={rows} />
-        </div>
-      )}
-
-      {total > pageSize ? (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
-            Page {page} of {pageCount}
+      <CardContent className="p-0">
+        {isInitialLoading ? (
+          <p className="py-20 text-center text-sm text-muted-foreground">
+            Loading expenses…
           </p>
-          <div className="flex items-center gap-1">
+        ) : expensesQuery.error ? (
+          <p className="py-20 text-center text-sm text-destructive">
+            {expensesQuery.error instanceof Error
+              ? expensesQuery.error.message
+              : 'Failed to load expenses'}
+          </p>
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title="No expenses found"
+            description={
+              filters.q || filters.statusId
+                ? 'Try adjusting your filters.'
+                : 'Expenses will appear here once created.'
+            }
+          />
+        ) : (
+          <div
+            className={cn(
+              isPaging ? 'opacity-60 transition-opacity' : undefined,
+            )}
+          >
+            <DataTable
+              columns={columns}
+              data={rows}
+              className="rounded-none border-0 bg-transparent"
+              rowClassName="group"
+            />
+          </div>
+        )}
+      </CardContent>
+
+      {pageCount > 1 ? (
+        <div className="flex items-center justify-between gap-4 border-t px-4 py-3">
+          <p className="text-xs text-muted-foreground tabular-nums">
+            Page {page} of {pageCount} · {pageSize} per page
+          </p>
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
-              size="icon-sm"
+              size="sm"
               disabled={page <= 1 || expensesQuery.isFetching}
               onClick={() => onPageChange(page - 1)}
             >
               <IconChevronLeft className="size-4" />
+              Previous
             </Button>
             <Button
               variant="outline"
-              size="icon-sm"
+              size="sm"
               disabled={page >= pageCount || expensesQuery.isFetching}
               onClick={() => onPageChange(page + 1)}
             >
+              Next
               <IconChevronRight className="size-4" />
             </Button>
           </div>
         </div>
       ) : null}
-    </div>
+    </>
   )
 }
 

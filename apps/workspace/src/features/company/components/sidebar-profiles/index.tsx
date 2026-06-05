@@ -63,7 +63,7 @@ const PORTAL_SIDEBAR_REGISTRY: Record<PortalSlug, PortalBinding> = {
   wms: { schema: wmsSchema, renderer: sidebar04Renderer },
 
   crm: { schema: crmSchema, renderer: defaultRenderer },
-  erp: { schema: erpSchema, renderer: defaultRenderer },
+  erp: { schema: erpSchema, renderer: sidebar04Renderer },
   pm: { schema: pmSchema, renderer: defaultRenderer },
   plm: { schema: plmSchema, renderer: defaultRenderer },
 };

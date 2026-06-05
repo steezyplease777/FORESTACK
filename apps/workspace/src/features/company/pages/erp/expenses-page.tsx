@@ -6,13 +6,7 @@ import { useDebouncedCallback } from '@tanstack/react-pacer'
 
 import { useCompany } from '@/features/company/tenant-provider'
 import { PageHeader } from '@/components/composites/page-header'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 
 import { ExpenseAdminTable } from '@/features/erp/finance/expenses/ExpenseAdminTable'
 import { DEFAULT_EXPENSE_TABLE_CONFIG } from '@/features/erp/finance/expenses/config/default-expense-table.config'
@@ -49,58 +43,50 @@ export function ExpensesPage() {
   )
 
   return (
-    <div className="flex flex-col gap-6 p-4 lg:p-6">
+    <div className="space-y-6">
       <PageHeader
         title="Expenses"
         description="Review and manage company expenses."
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All expenses</CardTitle>
-          <CardDescription>
-            Server-filtered list with inline edits for title, status, and amount.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ExpenseAdminTable
-            companyId={companyId}
-            config={DEFAULT_EXPENSE_TABLE_CONFIG}
-            filters={{ q: searchInput, statusId }}
-            page={page}
-            pageSize={pageSize}
-            sortColumn={sort}
-            sortDirection={dir}
-            onFiltersChange={(next) => {
-              if (next.q !== undefined) {
-                setSearchInput(next.q)
-                commitSearch(next.q)
-              }
-              if (next.statusId !== undefined || 'statusId' in next) {
-                navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    statusId: next.statusId,
-                    page: 1,
-                  }),
-                })
-              }
-            }}
-            onPageChange={(nextPage) =>
-              navigate({ search: (prev) => ({ ...prev, page: nextPage }) })
+      <Card className="gap-0 overflow-hidden p-0">
+        <ExpenseAdminTable
+          companyId={companyId}
+          config={DEFAULT_EXPENSE_TABLE_CONFIG}
+          filters={{ q: searchInput, statusId }}
+          page={page}
+          pageSize={pageSize}
+          sortColumn={sort}
+          sortDirection={dir}
+          onFiltersChange={(next) => {
+            if (next.q !== undefined) {
+              setSearchInput(next.q)
+              commitSearch(next.q)
             }
-            onSortChange={(sortColumn, sortDirection) =>
+            if (next.statusId !== undefined || 'statusId' in next) {
               navigate({
                 search: (prev) => ({
                   ...prev,
-                  sort: sortColumn,
-                  dir: sortDirection,
+                  statusId: next.statusId,
                   page: 1,
                 }),
               })
             }
-          />
-        </CardContent>
+          }}
+          onPageChange={(nextPage) =>
+            navigate({ search: (prev) => ({ ...prev, page: nextPage }) })
+          }
+          onSortChange={(sortColumn, sortDirection) =>
+            navigate({
+              search: (prev) => ({
+                ...prev,
+                sort: sortColumn,
+                dir: sortDirection,
+                page: 1,
+              }),
+            })
+          }
+        />
       </Card>
     </div>
   )
