@@ -66,14 +66,20 @@ const checkboxThClass =
   'sticky top-0 z-10 w-10 border-b border-r-0 border-border/70 bg-background px-2 py-2 text-center'
 const checkboxTdClass =
   'h-12 w-10 border-b border-r-0 border-border/70 bg-background px-2 text-center align-middle'
-/** Sticky right actions column — painted bg + left edge so scrolled cells don't bleed through. */
+/** Opaque hover/selection fills for sticky cells — alpha blends show scroll bleed-through. */
+const stickyRowHoverBg =
+  'group-hover:bg-[color-mix(in_srgb,var(--muted)_40%,var(--background))]'
+const stickyRowSelectedBg =
+  'bg-[color-mix(in_srgb,var(--muted)_30%,var(--background))]'
+/** Sticky right actions column — solid bg + left edge so scrolled cells don't bleed through. */
 const actionsThClass = cn(
   thClass,
-  'sticky right-0 z-20 border-l border-r-0 border-border/70 text-center shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]',
+  'sticky right-0 z-30 border-l border-r-0 border-border text-center shadow-[-8px_0_12px_-6px_rgba(0,0,0,0.14)]',
 )
 const actionsTdClass = cn(
   tdClass,
-  'sticky right-0 z-[1] border-l border-r-0 border-border/70 text-center shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]',
+  'sticky right-0 z-20 border-l border-r-0 border-border text-center shadow-[-8px_0_12px_-6px_rgba(0,0,0,0.14)]',
+  stickyRowHoverBg,
 )
 
 export function ExpenseAdminTable({
@@ -478,8 +484,7 @@ function ExpenseTableRow({
       <td
         className={cn(
           actionsTdClass,
-          'group-hover:bg-muted/40',
-          bulkEnabled && selected && 'bg-muted/30',
+          bulkEnabled && selected && stickyRowSelectedBg,
         )}
         style={{
           width: EXPENSE_ACTIONS_COLUMN_WIDTH,

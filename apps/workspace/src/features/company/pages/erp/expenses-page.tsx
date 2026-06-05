@@ -179,7 +179,7 @@ export function ExpensesPage() {
   })
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col p-4 lg:p-6">
       {isInitialLoading ? (
         <TableSkeleton />
       ) : expensesQuery.error ? (
@@ -232,7 +232,7 @@ export function ExpensesPage() {
       ) : (
         <div
           className={cn(
-            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-md border',
+            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-md border bg-card',
             isPaging ? 'opacity-60 transition-opacity' : undefined,
           )}
         >
@@ -281,33 +281,35 @@ export function ExpensesPage() {
             </div>
           ) : null}
 
-          <ExpenseAdminTable
-            companyId={companyId}
-            config={tableConfig}
-            rows={rows}
-            statuses={statuses}
-            sortColumn={sort}
-            sortDirection={dir}
-            selectedIds={selectedIds}
-            onSelectionChange={setSelectedIds}
-            documentTypes={documentTypes}
-            signedUrlsByDocId={signedUrlsByDocId}
-            creditCardsById={creditCardsById}
-            isUploadingDocument={uploadDocumentMutation.isPending}
-            onUploadDocument={(input) => uploadDocumentMutation.mutateAsync(input)}
-            onSortChange={(sortColumn, sortDirection) =>
-              navigate({
-                search: (prev) => ({
-                  ...prev,
-                  sort: sortColumn,
-                  dir: sortDirection,
-                  page: 1,
-                }),
-              })
-            }
-          />
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <ExpenseAdminTable
+              companyId={companyId}
+              config={tableConfig}
+              rows={rows}
+              statuses={statuses}
+              sortColumn={sort}
+              sortDirection={dir}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              documentTypes={documentTypes}
+              signedUrlsByDocId={signedUrlsByDocId}
+              creditCardsById={creditCardsById}
+              isUploadingDocument={uploadDocumentMutation.isPending}
+              onUploadDocument={(input) => uploadDocumentMutation.mutateAsync(input)}
+              onSortChange={(sortColumn, sortDirection) =>
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    sort: sortColumn,
+                    dir: sortDirection,
+                    page: 1,
+                  }),
+                })
+              }
+            />
+          </div>
 
-          <footer className="expense-table-footer flex shrink-0 items-center justify-between gap-4 border-t bg-muted/20 px-3.5 py-1.5 text-xs text-foreground">
+          <footer className="expense-table-footer mt-auto flex shrink-0 items-center justify-between gap-4 border-t border-border bg-muted/30 px-3.5 py-1.5 text-xs text-muted-foreground">
             <span className="tabular-nums">
               {total.toLocaleString()} rows
             </span>
