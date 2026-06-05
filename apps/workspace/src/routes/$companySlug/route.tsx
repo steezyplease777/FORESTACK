@@ -43,17 +43,11 @@ const loadCompanyContext = createServerFn({ method: 'GET' })
     (data: { companySlug: string; pathname: string }) => data,
   )
   .handler(async ({ data }) => {
-    const { createTenantClient } = await import(
-      '@/lib/datasource/supabase/tenant-client.server'
+    const { resolveTenantSession } = await import(
+      '@/lib/datasource/supabase/tenant-session.server'
     )
     const { requireCompanyAccess } = await import(
       '@/lib/auth/tenant-access.server'
-    )
-    const { getWorkOsAccessTokenFromCookies } = await import(
-      '@/lib/auth/workos/session-cookie.server'
-    )
-    const { decodeWorkOsJwtClaims } = await import(
-      '@/lib/auth/workos/jwt-claims'
     )
 
     const { companySlug, pathname } = data
@@ -94,28 +88,26 @@ const loadCompanyContext = createServerFn({ method: 'GET' })
       throw redirect({ href: tenantUrl(companySlug, visiblePath) })
     }
 
-    const supabase = createTenantClient()
-    const { data: userData } = await supabase.auth.getUser()
-    const user = userData.user
+    const session = await resolveTenantSession()
+    const user = session.supabaseUser
+    const workosClaims = session.workosClaims
 
     // API routes still enforce auth at this layer to guarantee every
     // tenant-scoped API returns JSON 401 instead of HTML redirect.
-    if (isApiRoute && !user) throw apiJson(401, { error: 'Unauthorized' })
+    if (isApiRoute && !session.isAuthenticated) {
+      throw apiJson(401, { error: 'Unauthorized' })
+    }
 
     // Best-effort membership load. We don't redirect here - the `_authed`
     // layout does that. This lets public pages render while still making
     // the membership available to authed children via context.
-    const workosToken = getWorkOsAccessTokenFromCookies()
-    const workosClaims = workosToken
-      ? decodeWorkOsJwtClaims(workosToken)
-      : null
     const externalIdentity =
       workosClaims?.sub && workosClaims?.iss
         ? { subjectId: workosClaims.sub, issuer: workosClaims.iss }
         : null
 
     let companyUser: CompanyUserProfile | null = null
-    if (user || externalIdentity) {
+    if (session.isAuthenticated) {
       const access = await requireCompanyAccess(
         company.companyId,
         user?.email ?? workosClaims?.email ?? null,
@@ -125,17 +117,29 @@ const loadCompanyContext = createServerFn({ method: 'GET' })
       companyUser = access.companyUser ?? null
     }
 
+    const authUser: AuthUser = user
+      ? {
+          id: user.id,
+          email: user.email ?? null,
+          name: (user.user_metadata as any)?.full_name ?? null,
+          image: (user.user_metadata as any)?.avatar_url ?? null,
+        }
+      : workosClaims
+        ? {
+            id: workosClaims.sub,
+            email: workosClaims.email ?? null,
+            name: null,
+            image: null,
+          }
+        : null
+
+    const userId =
+      user?.id ?? companyUser?.organizationUserId ?? workosClaims?.sub ?? null
+
     return {
       company,
-      authUser: user
-        ? ({
-            id: user.id,
-            email: user.email ?? null,
-            name: (user.user_metadata as any)?.full_name ?? null,
-            image: (user.user_metadata as any)?.avatar_url ?? null,
-          } satisfies AuthUser)
-        : null,
-      userId: user?.id ?? null,
+      authUser,
+      userId,
       companyUser,
     }
   })
