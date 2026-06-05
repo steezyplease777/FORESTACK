@@ -72,6 +72,7 @@ export function ExpenseAdminTable({
   signedUrlsByDocId,
   onUploadDocument,
   isUploadingDocument = false,
+  creditCardsById,
 }: ExpenseAdminTableProps) {
   const columns = config.columns
   const tableMinWidth = expenseTableMinWidth(columns)
@@ -268,6 +269,7 @@ export function ExpenseAdminTable({
                   onToggleRow={toggleRow}
                   uploadEnabled={uploadEnabled}
                   signedUrlsByDocId={signedUrlsByDocId}
+                  creditCardsById={creditCardsById}
                   onDropFile={handleDropFile}
                   style={{ height: virtualRow.size }}
                 />
@@ -312,6 +314,7 @@ function ExpenseTableRow({
   onToggleRow,
   uploadEnabled,
   signedUrlsByDocId,
+  creditCardsById,
   onDropFile,
   style,
 }: {
@@ -326,6 +329,7 @@ function ExpenseTableRow({
   onToggleRow: (id: string, checked: boolean) => void
   uploadEnabled?: boolean
   signedUrlsByDocId?: Map<string, string>
+  creditCardsById?: Map<string, import('@/lib/data/erp/expenses/types').CreditCardCatalogEntry>
   onDropFile?: (expenseId: string, file: File) => void
   style?: React.CSSProperties
 }) {
@@ -371,6 +375,7 @@ function ExpenseTableRow({
               readOnly={readOnly}
               uploadEnabled={uploadEnabled}
               signedUrlsByDocId={signedUrlsByDocId}
+              creditCardsById={creditCardsById}
               onDropFile={onDropFile}
             />
           </td>
@@ -462,6 +467,7 @@ function ExpenseCell({
   readOnly,
   uploadEnabled,
   signedUrlsByDocId,
+  creditCardsById,
   onDropFile,
 }: {
   columnId: ExpenseTableColumnId
@@ -472,6 +478,7 @@ function ExpenseCell({
   readOnly?: boolean
   uploadEnabled?: boolean
   signedUrlsByDocId?: Map<string, string>
+  creditCardsById?: Map<string, import('@/lib/data/erp/expenses/types').CreditCardCatalogEntry>
   onDropFile?: (expenseId: string, file: File) => void
 }) {
   switch (columnId) {
@@ -543,7 +550,12 @@ function ExpenseCell({
     case 'direction':
       return <DirectionCell direction={row.direction} />
     case 'attributes':
-      return <AttributesCell attributes={row.attributes} />
+      return (
+        <AttributesCell
+          attributes={row.attributes}
+          creditCardsById={creditCardsById}
+        />
+      )
     default:
       return '—'
   }

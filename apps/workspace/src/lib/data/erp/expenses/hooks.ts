@@ -17,6 +17,7 @@ import { uploadExpenseDocumentFile } from './document-storage'
 import { expenseKeys } from './keys'
 import { invalidateErpExpenses } from './mutations'
 import {
+  erpCreditCardsCatalogQuery,
   erpExpenseCategoriesQuery,
   erpExpenseDepartmentsQuery,
   erpExpenseDocumentTypesQuery,
@@ -127,6 +128,14 @@ export function useExpenseProjectOptions(companyId: string) {
 export function useExpenseDepartmentOptions(companyId: string) {
   return useQuery({
     ...erpExpenseDepartmentsQuery(companyId),
+    enabled: !!companyId,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useCreditCardsCatalog(companyId: string) {
+  return useQuery({
+    ...erpCreditCardsCatalogQuery(companyId),
     enabled: !!companyId,
     placeholderData: keepPreviousData,
   })

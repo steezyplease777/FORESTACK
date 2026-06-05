@@ -1,3 +1,27 @@
+import * as React from 'react'
+import { IconCreditCard, IconDots } from '@tabler/icons-react'
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  maskCardLast4,
+  type CreditCardCatalogEntry,
+} from '@/lib/data/erp/expenses/credit-card-catalog'
+
+const ATTRIBUTES_CELL_VISIBLE = 4
+
 const ATTRIBUTE_KEYS_ON_OTHER_COLUMNS = new Set([
   'payment_type',
   'department',
@@ -5,6 +29,14 @@ const ATTRIBUTE_KEYS_ON_OTHER_COLUMNS = new Set([
   'invoice_paid_date',
   'softr_submitted_by_name',
 ])
+
+type CreditCardAttributeRef = { id?: string; label?: string }
+
+type UncategorizedAttributeRow = {
+  key: string
+  label: string
+  value: string
+}
 
 const toTitleCase = (input: string): string =>
   String(input)
@@ -38,10 +70,6 @@ const formatAttributeValue = (value: unknown): string => {
       ) {
         return String(item)
       }
-      if (typeof item === 'object' && item && 'label' in item) {
-        const label = (item as { label?: string }).label
-        if (typeof label === 'string' && label.trim()) return label.trim()
-      }
       try {
         return JSON.stringify(item)
       } catch {
@@ -58,50 +86,230 @@ const formatAttributeValue = (value: unknown): string => {
   }
 }
 
-function collectDisplayParts(attributes: Record<string, unknown>): string[] {
-  const parts: string[] = []
-
-  const creditCards = attributes.credit_cards
-  if (Array.isArray(creditCards)) {
-    for (const item of creditCards) {
-      if (typeof item === 'string' && item.trim()) {
-        parts.push(item.trim())
-        continue
-      }
-      if (item && typeof item === 'object' && 'label' in item) {
-        const label = (item as { label?: string }).label
-        if (typeof label === 'string' && label.trim()) parts.push(label.trim())
-      }
+const parseCreditCardAttributeRefs = (
+  attributes: Record<string, unknown>,
+): CreditCardAttributeRef[] => {
+  const raw = attributes?.credit_cards
+  if (!Array.isArray(raw)) return []
+  const out: CreditCardAttributeRef[] = []
+  for (const item of raw) {
+    if (typeof item === 'string' && item.trim()) {
+      out.push({ label: item.trim() })
+      continue
     }
+    if (!item || typeof item !== 'object') continue
+    const id =
+      'id' in item && (item as { id?: string }).id
+        ? String((item as { id: string }).id)
+        : ''
+    const label =
+      'label' in item && (item as { label?: string }).label
+        ? String((item as { label: string }).label).trim()
+        : ''
+    if (id || label) out.push({ id: id || undefined, label: label || undefined })
   }
+  return out
+}
 
+const collectUncategorizedAttributes = (
+  attributes: Record<string, unknown>,
+): UncategorizedAttributeRow[] => {
+  const rows: UncategorizedAttributeRow[] = []
   for (const key of Object.keys(attributes).sort()) {
     if (key === 'credit_cards') continue
     if (ATTRIBUTE_KEYS_ON_OTHER_COLUMNS.has(key)) continue
     const value = attributes[key]
     if (isEmptyAttributeValue(value)) continue
-    parts.push(`${humanizeAttributeKey(key)}: ${formatAttributeValue(value)}`)
+    rows.push({
+      key,
+      label: humanizeAttributeKey(key),
+      value: formatAttributeValue(value),
+    })
   }
-
-  return parts
+  return rows
 }
+
+function AttributeIconTile({
+  icon,
+  ariaLabel,
+  className,
+}: {
+  icon: React.ReactNode
+  ariaLabel: string
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      className={[
+        'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded border border-border bg-muted/40 text-muted-foreground',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {icon}
+    </button>
+  )
+}
+
+function CreditCardAttributeTooltipContent({
+  catalogEntry,
+  fallbackLabel,
+}: {
+  catalogEntry?: CreditCardCatalogEntry
+  fallbackLabel?: string
+}) {
+  const holder =
+    catalogEntry?.holderName ||
+    (fallbackLabel ? toTitleCase(fallbackLabel) : '') ||
+    '—'
+  const bank = catalogEntry?.bankLabel || ''
+  const masked = catalogEntry?.last4
+    ? maskCardLast4(catalogEntry.last4)
+    : fallbackLabel
+      ? maskCardLast4(fallbackLabel) || '*******'
+      : '*******'
+  const summary = bank && bank !== '—' ? `${holder} · ${bank}` : holder
+
+  return (
+    <div className="min-w-[160px] space-y-0.5 text-left">
+      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        Credit card
+      </p>
+      <p className="text-sm font-medium leading-snug text-foreground">{summary}</p>
+      <p className="font-mono text-xs tracking-wide text-foreground">{masked}</p>
+    </div>
+  )
+}
+
+function UncategorizedAttributesTooltipContent({
+  rows,
+}: {
+  rows: UncategorizedAttributeRow[]
+}) {
+  if (rows.length === 0) return null
+
+  return (
+    <div className="w-[260px] max-w-[min(300px,calc(100vw-2rem))] bg-popover text-left">
+      <div className="max-h-[min(180px,32vh)] overflow-auto">
+        <Table className="min-w-max">
+          <TableHeader>
+            <TableRow className="border-b hover:bg-transparent">
+              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-bold uppercase tracking-wide">
+                Field
+              </TableHead>
+              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-bold uppercase tracking-wide">
+                Value
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow
+                key={row.key}
+                className="border-b border-border/40 last:border-0 hover:bg-transparent"
+              >
+                <TableCell className="whitespace-nowrap px-2.5 py-1 text-[11px] font-medium text-foreground">
+                  {row.label}
+                </TableCell>
+                <TableCell className="whitespace-nowrap px-2.5 py-1 text-[11px] text-muted-foreground">
+                  {row.value}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}
+
+const attributeTooltipClass =
+  'border bg-popover px-2 py-2 text-popover-foreground shadow-md'
 
 type AttributesCellProps = {
   attributes: Record<string, unknown>
+  creditCardsById?: Map<string, CreditCardCatalogEntry>
 }
 
-export function AttributesCell({ attributes }: AttributesCellProps) {
-  const parts = collectDisplayParts(attributes)
-  if (parts.length === 0) {
+export function AttributesCell({
+  attributes,
+  creditCardsById,
+}: AttributesCellProps) {
+  const catalog = creditCardsById ?? new Map<string, CreditCardCatalogEntry>()
+  const cardRefs = parseCreditCardAttributeRefs(attributes)
+  const uncategorized = collectUncategorizedAttributes(attributes)
+
+  if (cardRefs.length === 0 && uncategorized.length === 0) {
     return <span className="text-xs text-muted-foreground">—</span>
   }
 
+  const visible = cardRefs.slice(0, ATTRIBUTES_CELL_VISIBLE)
+  const overflow = cardRefs.length - ATTRIBUTES_CELL_VISIBLE
+
   return (
-    <span
-      className="block truncate text-sm text-foreground"
-      title={parts.join('; ')}
-    >
-      {parts.join(', ')}
-    </span>
+    <TooltipProvider delayDuration={50}>
+      <div className="flex min-h-8 flex-wrap items-center gap-1">
+        {visible.map((ref, idx) => {
+          const catalogEntry = ref.id ? catalog.get(ref.id) : undefined
+          const tileTitle =
+            catalogEntry?.title || ref.label || (ref.id ? 'Credit card' : 'Card')
+
+          return (
+            <Tooltip key={ref.id || ref.label || idx}>
+              <TooltipTrigger asChild>
+                <AttributeIconTile
+                  ariaLabel={tileTitle}
+                  icon={<IconCreditCard className="size-3.5 pointer-events-none" stroke={2} />}
+                />
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                align="start"
+                sideOffset={4}
+                className={attributeTooltipClass}
+              >
+                <CreditCardAttributeTooltipContent
+                  catalogEntry={catalogEntry}
+                  fallbackLabel={ref.label}
+                />
+              </TooltipContent>
+            </Tooltip>
+          )
+        })}
+
+        {overflow > 0 ? (
+          <span
+            className="text-[11px] font-medium text-foreground"
+            title={`${overflow} more card${overflow === 1 ? '' : 's'}`}
+          >
+            +{overflow}
+          </span>
+        ) : null}
+
+        {uncategorized.length > 0 ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AttributeIconTile
+                ariaLabel={`${uncategorized.length} other attribute${uncategorized.length === 1 ? '' : 's'}`}
+                icon={<IconDots className="size-3.5 pointer-events-none" stroke={2} />}
+              />
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              align="start"
+              sideOffset={4}
+              className={attributeTooltipClass}
+            >
+              <UncategorizedAttributesTooltipContent rows={uncategorized} />
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
+      </div>
+    </TooltipProvider>
   )
 }

@@ -10,6 +10,7 @@ import {
 
 import { expenseKeys } from './keys'
 import {
+  getCreditCardsCatalog,
   getExpenseCategories,
   getExpenseDepartmentOptions,
   getExpenseDocumentTypes,
@@ -19,6 +20,7 @@ import {
   getExpenses,
 } from './server'
 import type {
+  CreditCardCatalogEntry,
   ExpenseDocumentType,
   ExpenseListParams,
   ExpenseRecord,
@@ -107,6 +109,18 @@ export function erpExpenseDepartmentsQuery(companyId: string) {
     queryKey: expenseKeys.departments(companyId),
     queryFn: () => getExpenseDepartmentOptions({ data: { companyId } }),
     staleTime: DEFAULT_REFERENCE_STALE_TIME,
+  }
+}
+
+export function erpCreditCardsCatalogQuery(companyId: string) {
+  return {
+    queryKey: expenseKeys.creditCards(companyId),
+    queryFn: () => getCreditCardsCatalog({ data: { companyId } }),
+    staleTime: DEFAULT_REFERENCE_STALE_TIME,
+  } satisfies {
+    queryKey: ReturnType<typeof expenseKeys.creditCards>
+    queryFn: () => Promise<CreditCardCatalogEntry[]>
+    staleTime: number
   }
 }
 

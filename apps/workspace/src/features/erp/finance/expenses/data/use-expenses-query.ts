@@ -1,5 +1,6 @@
 export {
   useBulkExpenseUpdate,
+  useCreditCardsCatalog,
   useExpenseCategories,
   useExpenseDepartmentOptions,
   useExpenseDocumentSignedUrls,

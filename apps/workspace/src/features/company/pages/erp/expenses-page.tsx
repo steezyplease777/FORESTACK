@@ -29,6 +29,7 @@ import {
 } from '@/features/erp/finance/expenses/data/search-params'
 import { toExpenseRow } from '@/features/erp/finance/expenses/data/to-row'
 import {
+  useCreditCardsCatalog,
   useExpenseDocumentSignedUrls,
   useExpenseDocumentTypes,
   useExpenseStatuses,
@@ -80,6 +81,7 @@ export function ExpensesPage() {
   const statusesQuery = useExpenseStatuses(companyId)
   const tagsQuery = useExpenseTags(companyId)
   const documentTypesQuery = useExpenseDocumentTypes(companyId)
+  const creditCardsQuery = useCreditCardsCatalog(companyId)
   const uploadDocumentMutation = useUploadExpenseDocument(companyId)
   const statuses = statusesQuery.data ?? []
   const documentTypes = documentTypesQuery.data ?? []
@@ -121,6 +123,14 @@ export function ExpensesPage() {
     }
     return map
   }, [signedUrlsQuery.data])
+
+  const creditCardsById = React.useMemo(() => {
+    const map = new Map<string, { id: string; title: string; last4: string; bankLabel: string; holderName: string }>()
+    for (const card of creditCardsQuery.data ?? []) {
+      map.set(card.id, card)
+    }
+    return map
+  }, [creditCardsQuery.data])
   const total = result?.total ?? 0
   const pageCount = totalPages(total, pageSize)
   const isPaging = expensesQuery.isPlaceholderData
@@ -275,6 +285,7 @@ export function ExpensesPage() {
             onSelectionChange={setSelectedIds}
             documentTypes={documentTypes}
             signedUrlsByDocId={signedUrlsByDocId}
+            creditCardsById={creditCardsById}
             isUploadingDocument={uploadDocumentMutation.isPending}
             onUploadDocument={(input) => uploadDocumentMutation.mutateAsync(input)}
             onSortChange={(sortColumn, sortDirection) =>

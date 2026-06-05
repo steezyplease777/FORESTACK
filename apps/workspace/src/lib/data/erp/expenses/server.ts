@@ -13,6 +13,12 @@ import {
   isExpenseSortColumn,
 } from '@/features/erp/finance/expenses/data/field-map'
 
+import {
+  CREDIT_CARD_BANK_LABEL_BY_ID,
+  formatCreditCardCatalogTitle,
+  orgUserDisplayName,
+  type CreditCardCatalogEntry,
+} from './credit-card-catalog'
 import { EXPENSE_DOCUMENTS_BUCKET } from './document-constants'
 import {
   isImageMime,
@@ -198,6 +204,47 @@ export const getExpenseProjectOptions = createServerFn({ method: 'GET' })
       .limit(500)
     if (error) throw new Error(error.message)
     return (rows ?? []) as ExpenseProjectOption[]
+  })
+
+const CREDIT_CARD_CATALOG_SELECT =
+  'id,card_number,bank,holder:app_company_users!company_user_id(org_user:app_organization_users(first_name,last_name,email))'
+
+export const getCreditCardsCatalog = createServerFn({ method: 'GET' })
+  .inputValidator((data: { companyId: string }) => data)
+  .handler(async ({ data }): Promise<CreditCardCatalogEntry[]> => {
+    const { supabase } = await requireTenantSupabase()
+    const { data: rows, error } = await supabase
+      .from('erp_credit_cards')
+      .select(CREDIT_CARD_CATALOG_SELECT)
+      .eq('company_id', data.companyId)
+      .limit(2000)
+    if (error) throw new Error(error.message)
+
+    const out: CreditCardCatalogEntry[] = []
+    for (const row of rows ?? []) {
+      if (!row?.id) continue
+      const holder = row.holder
+      const holderObj = Array.isArray(holder) ? holder[0] : holder
+      const orgUserRaw = holderObj?.org_user
+      const orgUser = Array.isArray(orgUserRaw) ? orgUserRaw[0] : orgUserRaw
+      const holderName = orgUserDisplayName(orgUser)
+      const last4 = String(row.card_number ?? '')
+        .replace(/\D/g, '')
+        .slice(-4)
+      const bank = row.bank ? String(row.bank) : ''
+      out.push({
+        id: row.id,
+        title: formatCreditCardCatalogTitle(holderName, bank, last4),
+        last4,
+        bankLabel: bank ? CREDIT_CARD_BANK_LABEL_BY_ID[bank] || bank : '',
+        holderName: holderName
+          ? holderName
+              .toLowerCase()
+              .replace(/([^\s\-/&(.]+)/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))
+          : '',
+      })
+    }
+    return out
   })
 
 export const getExpenseDepartmentOptions = createServerFn({ method: 'GET' })

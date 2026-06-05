@@ -127,3 +127,5 @@ export type ExpenseUpdatePatch = {
   vendor_id?: string | null
   category_id?: string | null
 }
+
+export type { CreditCardCatalogEntry } from './credit-card-catalog'

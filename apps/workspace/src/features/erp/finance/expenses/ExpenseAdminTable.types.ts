@@ -1,6 +1,7 @@
 import type * as React from 'react'
 
 import type {
+  CreditCardCatalogEntry,
   ExpenseDocument,
   ExpenseDocumentType,
   ExpenseRecord,
@@ -168,4 +169,5 @@ export type ExpenseAdminTableProps = {
     typeId: string
     file: File
   }) => Promise<void>
+  creditCardsById?: Map<string, CreditCardCatalogEntry>
 }
