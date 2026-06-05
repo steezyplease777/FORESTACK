@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import * as React from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   IconArrowDown,
   IconArrowUp,
@@ -13,6 +14,7 @@ import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 import { AmountCell } from './cells/AmountCell'
 import { DateCell } from './cells/DateCell'
 import { DocumentsCell } from './cells/DocumentsCell'
+import { DocumentUploadDialog } from './documents/DocumentUploadDialog'
 import { PaymentTypeCell } from './cells/PaymentTypeCell'
 import { RowActionsCell } from './cells/RowActionsCell'
 import { StatusCell } from './cells/StatusCell'
@@ -27,6 +29,10 @@ import {
   expenseTableMinWidth,
 } from './config/column-defs'
 import {
+  sortColumnForTableColumn,
+  type ExpenseSortColumn,
+} from './data/field-map'
+import {
   formatExpenseAmount,
   formatExpenseDate,
 } from './data/to-row'
@@ -37,20 +43,18 @@ import type {
   ExpenseTableConfig,
 } from './ExpenseAdminTable.types'
 
-const SORTABLE_COLUMN_MAP: Partial<
-  Record<ExpenseTableColumnId, 'created_at' | 'title' | 'amount'>
-> = {
-  title: 'title',
-  amount: 'amount',
-  submittedAt: 'created_at',
-}
+/** Fixed row height — matches `h-12` cells and virtualizer `estimateSize`. */
+export const EXPENSE_ROW_HEIGHT = 48
+
+/** Vertical scroll viewport inside the expenses page shell. */
+export const EXPENSE_TABLE_MAX_HEIGHT = 'calc(100vh - 280px)'
 
 const thClass =
-  'sticky top-0 z-[3] border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground last:border-r-0'
+  'sticky top-0 z-10 border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground last:border-r-0'
 const tdClass =
   'h-12 overflow-hidden border-b border-r border-border/70 px-2 align-middle last:border-r-0'
 const checkboxThClass =
-  'sticky top-0 z-[3] w-10 border-b border-r-0 border-border/70 bg-background px-2 py-2 text-center'
+  'sticky top-0 z-10 w-10 border-b border-r-0 border-border/70 bg-background px-2 py-2 text-center'
 const checkboxTdClass =
   'h-12 w-10 border-b border-r-0 border-border/70 px-2 text-center align-middle'
 
@@ -65,6 +69,10 @@ export function ExpenseAdminTable({
   readOnly,
   selectedIds: selectedIdsProp,
   onSelectionChange,
+  documentTypes = [],
+  signedUrlsByDocId,
+  onUploadDocument,
+  isUploadingDocument = false,
 }: ExpenseAdminTableProps) {
   const columns = config.columns
   const tableMinWidth = expenseTableMinWidth(columns)
@@ -75,6 +83,27 @@ export function ExpenseAdminTable({
   >(new Set())
   const selectedIds = selectedIdsProp ?? internalSelectedIds
   const setSelectedIds = onSelectionChange ?? setInternalSelectedIds
+
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => EXPENSE_ROW_HEIGHT,
+    overscan: 10,
+    getItemKey: (index) => rows[index]?.id ?? index,
+  })
+
+  const virtualItems = virtualizer.getVirtualItems()
+  const totalVirtualSize = virtualizer.getTotalSize()
+  const topPadding =
+    virtualItems.length > 0 ? virtualItems[0].start : 0
+  const bottomPadding =
+    virtualItems.length > 0
+      ? totalVirtualSize - virtualItems[virtualItems.length - 1].end
+      : 0
+
+  const colSpan = (bulkEnabled ? 1 : 0) + columns.length + 1
 
   const pageRowIds = React.useMemo(() => rows.map((r) => r.id), [rows])
   const allSelected =
@@ -107,150 +136,258 @@ export function ExpenseAdminTable({
     })
   }
 
-  return (
-    <div className="overflow-x-auto">
-    <table
-      className="expense-grid-table border-separate border-spacing-0 text-sm"
-      style={{ minWidth: tableMinWidth }}
-    >
-      <colgroup>
-        {bulkEnabled ? (
-          <col
-            style={{
-              width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
-              minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
-            }}
-          />
-        ) : null}
-        {columns.map((columnId) => {
-          const minWidth = EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100
-          return <col key={columnId} style={{ minWidth }} />
-        })}
-        <col
-          style={{
-            width: EXPENSE_ACTIONS_COLUMN_WIDTH,
-            minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
-          }}
-        />
-      </colgroup>
-      <thead>
-        <tr className="hover:bg-transparent">
-          {bulkEnabled ? (
-            <th
-              className={checkboxThClass}
-              style={{
-                width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
-                minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
-              }}
-            >
-              <Checkbox
-                checked={
-                  allSelected ? true : someSelected ? 'indeterminate' : false
-                }
-                onCheckedChange={(v) => toggleAll(!!v)}
-                aria-label="Select all rows on this page"
-              />
-            </th>
-          ) : null}
-          {columns.map((columnId) => {
-            const def = EXPENSE_COLUMN_DEFS[columnId]
-            const label = def?.label ?? columnId
-            const sortable = config.sortableColumns.includes(columnId)
-            const alignRight = def?.align === 'right'
-            const resolvedSort = SORTABLE_COLUMN_MAP[columnId]
-            const HeaderIcon = def?.icon
+  const uploadEnabled =
+    !readOnly && documentTypes.length > 0 && typeof onUploadDocument === 'function'
 
-            return (
-              <th
-                key={columnId}
-                className={cn(thClass, alignRight && 'text-right')}
-                style={{ minWidth: def?.width ?? 100 }}
-              >
-                {sortable && resolvedSort ? (
-                  <SortableHeader
-                    label={label}
-                    icon={HeaderIcon}
-                    resolvedSort={resolvedSort}
-                    sortColumn={sortColumn}
-                    sortDirection={sortDirection}
-                    onSortChange={onSortChange}
-                    alignRight={alignRight}
-                  />
-                ) : (
-                  <StaticHeader label={label} icon={HeaderIcon} alignRight={alignRight} />
-                )}
-              </th>
-            )
-          })}
-          <th
-            className={cn(thClass, 'text-center')}
-            style={{
-              width: EXPENSE_ACTIONS_COLUMN_WIDTH,
-              minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
-            }}
-            aria-label="Row actions"
-          />
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr
-            key={row.id}
-            className={cn(
-              'transition-colors hover:bg-muted/40',
-              bulkEnabled && selectedIds.has(row.id) && 'bg-muted/30',
-            )}
-          >
+  const [pendingUpload, setPendingUpload] = React.useState<{
+    expenseId: string
+    file: File
+  } | null>(null)
+
+  const handleDropFile = React.useCallback(
+    (expenseId: string, file: File) => {
+      if (!uploadEnabled) return
+      setPendingUpload({ expenseId, file })
+    },
+    [uploadEnabled],
+  )
+
+  return (
+    <>
+      <div
+        ref={scrollRef}
+        className="overflow-auto"
+        style={{ maxHeight: EXPENSE_TABLE_MAX_HEIGHT }}
+      >
+        <table
+          className="expense-grid-table border-separate border-spacing-0 text-sm"
+          style={{ minWidth: tableMinWidth }}
+        >
+          <colgroup>
             {bulkEnabled ? (
-              <td
-                className={checkboxTdClass}
+              <col
                 style={{
                   width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
                   minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
                 }}
-              >
-                <Checkbox
-                  checked={selectedIds.has(row.id)}
-                  onCheckedChange={(v) => toggleRow(row.id, !!v)}
-                  aria-label={`Select row ${row.title || row.id}`}
-                />
-              </td>
+              />
             ) : null}
             {columns.map((columnId) => {
-              const def = EXPENSE_COLUMN_DEFS[columnId]
-              const alignRight = def?.align === 'right'
-
-              return (
-                <td
-                  key={columnId}
-                  className={cn(tdClass, alignRight && 'text-right')}
-                  style={{ minWidth: def?.width ?? 100 }}
-                >
-                  <ExpenseCell
-                    columnId={columnId}
-                    row={row}
-                    companyId={companyId}
-                    statuses={statuses}
-                    config={config}
-                    readOnly={readOnly}
-                  />
-                </td>
-              )
+              const minWidth = EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100
+              return <col key={columnId} style={{ minWidth }} />
             })}
-            <td
-              className={cn(tdClass, 'text-center')}
+            <col
               style={{
                 width: EXPENSE_ACTIONS_COLUMN_WIDTH,
                 minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
               }}
-            >
-              <RowActionsCell row={row} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    </div>
+            />
+          </colgroup>
+          <thead>
+            <tr className="hover:bg-transparent">
+              {bulkEnabled ? (
+                <th
+                  className={checkboxThClass}
+                  style={{
+                    width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+                    minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+                  }}
+                >
+                  <Checkbox
+                    checked={
+                      allSelected ? true : someSelected ? 'indeterminate' : false
+                    }
+                    onCheckedChange={(v) => toggleAll(!!v)}
+                    aria-label="Select all rows on this page"
+                  />
+                </th>
+              ) : null}
+              {columns.map((columnId) => {
+                const def = EXPENSE_COLUMN_DEFS[columnId]
+                const label = def?.label ?? columnId
+                const sortable = config.sortableColumns.includes(columnId)
+                const alignRight = def?.align === 'right'
+                const resolvedSort = sortColumnForTableColumn(columnId)
+                const HeaderIcon = def?.icon
+
+                return (
+                  <th
+                    key={columnId}
+                    className={cn(thClass, alignRight && 'text-right')}
+                    style={{ minWidth: def?.width ?? 100 }}
+                  >
+                    {sortable && resolvedSort ? (
+                      <SortableHeader
+                        label={label}
+                        icon={HeaderIcon}
+                        resolvedSort={resolvedSort}
+                        sortColumn={sortColumn}
+                        sortDirection={sortDirection}
+                        onSortChange={onSortChange}
+                        alignRight={alignRight}
+                      />
+                    ) : (
+                      <StaticHeader
+                        label={label}
+                        icon={HeaderIcon}
+                        alignRight={alignRight}
+                      />
+                    )}
+                  </th>
+                )
+              })}
+              <th
+                className={cn(thClass, 'text-center')}
+                style={{
+                  width: EXPENSE_ACTIONS_COLUMN_WIDTH,
+                  minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
+                }}
+                aria-label="Row actions"
+              />
+            </tr>
+          </thead>
+          <tbody style={{ height: totalVirtualSize }}>
+            {topPadding > 0 ? (
+              <tr aria-hidden style={{ height: topPadding }}>
+                <td colSpan={colSpan} style={{ padding: 0, border: 'none' }} />
+              </tr>
+            ) : null}
+            {virtualItems.map((virtualRow) => {
+              const row = rows[virtualRow.index]
+              if (!row) return null
+
+              return (
+                <ExpenseTableRow
+                  key={row.id}
+                  row={row}
+                  columns={columns}
+                  companyId={companyId}
+                  statuses={statuses}
+                  config={config}
+                  readOnly={readOnly}
+                  bulkEnabled={bulkEnabled}
+                  selected={selectedIds.has(row.id)}
+                  onToggleRow={toggleRow}
+                  uploadEnabled={uploadEnabled}
+                  signedUrlsByDocId={signedUrlsByDocId}
+                  onDropFile={handleDropFile}
+                  style={{ height: virtualRow.size }}
+                />
+              )
+            })}
+            {bottomPadding > 0 ? (
+              <tr aria-hidden style={{ height: bottomPadding }}>
+                <td colSpan={colSpan} style={{ padding: 0, border: 'none' }} />
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+
+      <DocumentUploadDialog
+        open={!!pendingUpload}
+        expenseId={pendingUpload?.expenseId ?? ''}
+        companyId={companyId}
+        file={pendingUpload?.file ?? null}
+        documentTypes={documentTypes}
+        isSubmitting={isUploadingDocument}
+        onClose={() => setPendingUpload(null)}
+        onSubmit={async (input) => {
+          if (!onUploadDocument) return
+          await onUploadDocument(input)
+          setPendingUpload(null)
+        }}
+      />
+    </>
+  )
+}
+
+function ExpenseTableRow({
+  row,
+  columns,
+  companyId,
+  statuses,
+  config,
+  readOnly,
+  bulkEnabled,
+  selected,
+  onToggleRow,
+  uploadEnabled,
+  signedUrlsByDocId,
+  onDropFile,
+  style,
+}: {
+  row: ExpenseRow
+  columns: ExpenseTableColumnId[]
+  companyId: string
+  statuses: ExpenseStatus[]
+  config: ExpenseTableConfig
+  readOnly?: boolean
+  bulkEnabled: boolean
+  selected: boolean
+  onToggleRow: (id: string, checked: boolean) => void
+  uploadEnabled?: boolean
+  signedUrlsByDocId?: Map<string, string>
+  onDropFile?: (expenseId: string, file: File) => void
+  style?: React.CSSProperties
+}) {
+  return (
+    <tr
+      className={cn(
+        'transition-colors hover:bg-muted/40',
+        bulkEnabled && selected && 'bg-muted/30',
+      )}
+      style={style}
+    >
+      {bulkEnabled ? (
+        <td
+          className={checkboxTdClass}
+          style={{
+            width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+            minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+          }}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(v) => onToggleRow(row.id, !!v)}
+            aria-label={`Select row ${row.title || row.id}`}
+          />
+        </td>
+      ) : null}
+      {columns.map((columnId) => {
+        const def = EXPENSE_COLUMN_DEFS[columnId]
+        const alignRight = def?.align === 'right'
+
+        return (
+          <td
+            key={columnId}
+            className={cn(tdClass, alignRight && 'text-right')}
+            style={{ minWidth: def?.width ?? 100 }}
+          >
+            <ExpenseCell
+              columnId={columnId}
+              row={row}
+              companyId={companyId}
+              statuses={statuses}
+              config={config}
+              readOnly={readOnly}
+              uploadEnabled={uploadEnabled}
+              signedUrlsByDocId={signedUrlsByDocId}
+              onDropFile={onDropFile}
+            />
+          </td>
+        )
+      })}
+      <td
+        className={cn(tdClass, 'text-center')}
+        style={{
+          width: EXPENSE_ACTIONS_COLUMN_WIDTH,
+          minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
+        }}
+      >
+        <RowActionsCell row={row} />
+      </td>
+    </tr>
   )
 }
 
@@ -287,7 +424,7 @@ function SortableHeader({
 }: {
   label: string
   icon?: React.ComponentType<{ className?: string }>
-  resolvedSort: 'created_at' | 'title' | 'amount'
+  resolvedSort: ExpenseSortColumn
   sortColumn: ExpenseAdminTableProps['sortColumn']
   sortDirection: ExpenseAdminTableProps['sortDirection']
   onSortChange: ExpenseAdminTableProps['onSortChange']
@@ -325,6 +462,9 @@ function ExpenseCell({
   statuses,
   config,
   readOnly,
+  uploadEnabled,
+  signedUrlsByDocId,
+  onDropFile,
 }: {
   columnId: ExpenseTableColumnId
   row: ExpenseRow
@@ -332,6 +472,9 @@ function ExpenseCell({
   statuses: ExpenseStatus[]
   config: ExpenseTableConfig
   readOnly?: boolean
+  uploadEnabled?: boolean
+  signedUrlsByDocId?: Map<string, string>
+  onDropFile?: (expenseId: string, file: File) => void
 }) {
   switch (columnId) {
     case 'submittedBy':
@@ -379,7 +522,15 @@ function ExpenseCell({
     case 'invoiceTags':
       return <TagsCell row={row} />
     case 'documents':
-      return <DocumentsCell row={row} />
+      return (
+        <DocumentsCell
+          row={row}
+          readOnly={readOnly}
+          uploadEnabled={uploadEnabled}
+          signedUrlsByDocId={signedUrlsByDocId}
+          onDropFile={onDropFile}
+        />
+      )
     case 'paymentType':
       return (
         <PaymentTypeCell

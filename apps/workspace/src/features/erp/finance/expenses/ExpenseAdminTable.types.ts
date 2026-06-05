@@ -7,6 +7,8 @@ import type {
   ExpenseStatus,
 } from '@/lib/data/erp/expenses/types'
 
+import type { ExpenseSortColumn } from './data/field-map'
+
 export type ExpenseTableColumnId =
   | 'submittedBy'
   | 'title'
@@ -146,12 +148,9 @@ export type ExpenseAdminTableProps = {
   config: ExpenseTableConfig
   rows: ExpenseRow[]
   statuses: ExpenseStatus[]
-  sortColumn: 'created_at' | 'title' | 'amount'
+  sortColumn: ExpenseSortColumn
   sortDirection: 'asc' | 'desc'
-  onSortChange: (
-    column: 'created_at' | 'title' | 'amount',
-    direction: 'asc' | 'desc',
-  ) => void
+  onSortChange: (column: ExpenseSortColumn, direction: 'asc' | 'desc') => void
   readOnly?: boolean
   selectedIds?: ExpenseRowSelection
   onSelectionChange?: React.Dispatch<React.SetStateAction<ExpenseRowSelection>>

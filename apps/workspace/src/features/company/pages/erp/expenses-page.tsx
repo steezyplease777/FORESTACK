@@ -30,9 +30,12 @@ import {
 } from '@/features/erp/finance/expenses/data/search-params'
 import { toExpenseRow } from '@/features/erp/finance/expenses/data/to-row'
 import {
+  useExpenseDocumentSignedUrls,
+  useExpenseDocumentTypes,
   useExpenseStatuses,
   useExpenseTags,
   useExpenses,
+  useUploadExpenseDocument,
 } from '@/features/erp/finance/expenses/data/use-expenses-query'
 
 const routeApi = getRouteApi('/$companySlug/_authed/erp/finance/expenses/')
@@ -77,7 +80,10 @@ export function ExpensesPage() {
   })
   const statusesQuery = useExpenseStatuses(companyId)
   const tagsQuery = useExpenseTags(companyId)
+  const documentTypesQuery = useExpenseDocumentTypes(companyId)
+  const uploadDocumentMutation = useUploadExpenseDocument(companyId)
   const statuses = statusesQuery.data ?? []
+  const documentTypes = documentTypesQuery.data ?? []
 
   const tagsById = React.useMemo(() => {
     const map = new Map<string, string>()
@@ -92,6 +98,30 @@ export function ExpensesPage() {
     () => (result?.rows ?? []).map((rec) => toExpenseRow(rec, tagsById)),
     [result?.rows, tagsById],
   )
+
+  const signDocumentItems = React.useMemo(
+    () =>
+      rows.flatMap((row) =>
+        row.documents.map((document) => ({
+          document,
+          expenseId: row.id,
+        })),
+      ),
+    [rows],
+  )
+
+  const signedUrlsQuery = useExpenseDocumentSignedUrls(
+    companyId,
+    signDocumentItems,
+  )
+
+  const signedUrlsByDocId = React.useMemo(() => {
+    const map = new Map<string, string>()
+    for (const entry of signedUrlsQuery.data ?? []) {
+      map.set(entry.documentId, entry.url)
+    }
+    return map
+  }, [signedUrlsQuery.data])
   const total = result?.total ?? 0
   const pageCount = totalPages(total, pageSize)
   const isPaging = expensesQuery.isPlaceholderData
@@ -253,6 +283,10 @@ export function ExpensesPage() {
             sortDirection={dir}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
+            documentTypes={documentTypes}
+            signedUrlsByDocId={signedUrlsByDocId}
+            isUploadingDocument={uploadDocumentMutation.isPending}
+            onUploadDocument={(input) => uploadDocumentMutation.mutateAsync(input)}
             onSortChange={(sortColumn, sortDirection) =>
               navigate({
                 search: (prev) => ({
