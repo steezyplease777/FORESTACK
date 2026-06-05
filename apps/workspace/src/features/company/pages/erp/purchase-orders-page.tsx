@@ -5,7 +5,7 @@ import { Link, getRouteApi } from "@tanstack/react-router";
 import { useCompany } from "@/features/company/tenant-provider";
 import { usePurchaseOrders } from "@/lib/data/erp/purchase-orders/hooks";
 
-const routeApi = getRouteApi("/$companySlug/erp/purchase-orders/");
+const routeApi = getRouteApi("/$companySlug/_authed/erp/purchase-orders/");
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/reui/badge";
 import { Input } from "@/components/ui/input";

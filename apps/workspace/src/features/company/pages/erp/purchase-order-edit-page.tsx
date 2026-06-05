@@ -5,7 +5,7 @@ import { POForm } from "@/features/company/modules/erp/purchase-orders/po-form";
 
 export function EditPurchaseOrderPage() {
   const { id } = useParams({
-    from: "/$companySlug/erp/purchase-orders/$id/edit",
+    from: "/$companySlug/_authed/erp/purchase-orders/$id/edit",
   });
   const { data: po, isLoading, error } = usePurchaseOrder(id);
 

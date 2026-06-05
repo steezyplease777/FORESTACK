@@ -22,7 +22,7 @@ import {
 
 export function PurchaseOrderDetailPage() {
   const { id, companySlug } = useParams({
-    from: "/$companySlug/erp/purchase-orders/$id",
+    from: "/$companySlug/_authed/erp/purchase-orders/$id/",
   });
   const { company } = useCompany();
   const companyId = company?.companyId ?? "";

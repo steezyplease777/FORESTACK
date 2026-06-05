@@ -7,7 +7,7 @@ import {
   useCreateSalesChannel,
 } from "@/lib/data/erp/sales-channels/hooks";
 
-const routeApi = getRouteApi("/$companySlug/erp/sales-channels");
+const routeApi = getRouteApi("/$companySlug/_authed/erp/sales-channels");
 import type { SalesChannelType } from "@/lib/data/erp/sales-channels/hooks";
 import { PageHeader } from "@/components/composites/page-header";
 import { EmptyState } from "@/components/composites/empty-state";
