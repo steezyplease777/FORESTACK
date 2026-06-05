@@ -12,7 +12,9 @@ import { cn } from '@/lib/utils'
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { AmountCell } from './cells/AmountCell'
+import { AttributesCell } from './cells/AttributesCell'
 import { DateCell } from './cells/DateCell'
+import { DirectionCell } from './cells/DirectionCell'
 import { DocumentsCell } from './cells/DocumentsCell'
 import { DocumentUploadDialog } from './documents/DocumentUploadDialog'
 import { PaymentTypeCell } from './cells/PaymentTypeCell'
@@ -45,9 +47,6 @@ import type {
 
 /** Fixed row height — matches `h-12` cells and virtualizer `estimateSize`. */
 export const EXPENSE_ROW_HEIGHT = 48
-
-/** Vertical scroll viewport inside the expenses page shell. */
-export const EXPENSE_TABLE_MAX_HEIGHT = 'calc(100vh - 280px)'
 
 const thClass =
   'sticky top-0 z-10 border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground last:border-r-0'
@@ -153,14 +152,13 @@ export function ExpenseAdminTable({
   )
 
   return (
-    <>
+    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
       <div
         ref={scrollRef}
-        className="overflow-auto"
-        style={{ maxHeight: EXPENSE_TABLE_MAX_HEIGHT }}
+        className="min-h-0 min-w-0 flex-1 overflow-auto"
       >
         <table
-          className="expense-grid-table border-separate border-spacing-0 text-sm"
+          className="expense-grid-table w-full border-separate border-spacing-0 text-sm"
           style={{ minWidth: tableMinWidth }}
         >
           <colgroup>
@@ -298,7 +296,7 @@ export function ExpenseAdminTable({
           setPendingUpload(null)
         }}
       />
-    </>
+    </div>
   )
 }
 
@@ -542,6 +540,10 @@ function ExpenseCell({
       return <DateCell value={row.invoiceDate} />
     case 'submittedAt':
       return <DateCell value={row.submittedAt} />
+    case 'direction':
+      return <DirectionCell direction={row.direction} />
+    case 'attributes':
+      return <AttributesCell attributes={row.attributes} />
     default:
       return '—'
   }

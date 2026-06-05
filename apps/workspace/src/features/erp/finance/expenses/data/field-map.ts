@@ -9,6 +9,8 @@ export const EXPENSE_SORT_COLUMNS = [
   'category_id',
   'payment_type',
   'invoice_date',
+  'department',
+  'direction',
 ] as const
 
 export type ExpenseSortColumn = (typeof EXPENSE_SORT_COLUMNS)[number]
@@ -23,6 +25,8 @@ export const EXPENSE_ORDER_COLUMN_BY_SORT: Record<ExpenseSortColumn, string> = {
   category_id: 'category_id',
   payment_type: 'attributes->>payment_type',
   invoice_date: 'attributes->>invoice_date',
+  department: 'attributes->>department',
+  direction: 'direction',
 }
 
 export function isExpenseSortColumn(value: string): value is ExpenseSortColumn {
@@ -84,7 +88,13 @@ export const EXPENSE_FIELD_MAP: Record<string, ExpenseFieldMeta> = {
   department: {
     kind: 'jsonb_text',
     filterColumn: 'attributes->>department',
+    sortColumn: 'department',
     attributeKey: 'department',
+  },
+  direction: {
+    kind: 'enum',
+    filterColumn: 'direction',
+    sortColumn: 'direction',
   },
   relatedProject: {
     kind: 'projects',

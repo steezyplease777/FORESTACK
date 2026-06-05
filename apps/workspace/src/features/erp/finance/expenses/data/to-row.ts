@@ -78,6 +78,8 @@ export function toExpenseRow(
     invoiceDate:
       typeof attrs.invoice_date === 'string' ? attrs.invoice_date : '',
     submittedAt: rec.created_at ?? '',
+    direction: rec.direction ? String(rec.direction) : '',
+    attributes: attrs,
     documents,
   }
 }

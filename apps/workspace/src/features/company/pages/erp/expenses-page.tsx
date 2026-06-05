@@ -167,8 +167,9 @@ export function ExpensesPage() {
   })
 
   return (
-    <div className="flex flex-col gap-6 p-4 lg:p-6">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <PageHeader
+        className="shrink-0"
         title="Expenses"
         description={
           total > 0
@@ -229,7 +230,7 @@ export function ExpensesPage() {
       ) : (
         <div
           className={cn(
-            'flex flex-col overflow-hidden rounded-md border',
+            'flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-md border',
             isPaging ? 'opacity-60 transition-opacity' : undefined,
           )}
         >
@@ -299,7 +300,7 @@ export function ExpensesPage() {
             }
           />
 
-          <div className="flex items-center justify-between gap-4 border-t bg-muted/20 px-3.5 py-1.5 text-xs text-foreground">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-t bg-muted/20 px-3.5 py-1.5 text-xs text-foreground">
             <span className="tabular-nums">
               {total.toLocaleString()} rows
             </span>

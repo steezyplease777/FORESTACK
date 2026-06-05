@@ -23,6 +23,8 @@ export type ExpenseTableColumnId =
   | 'documents'
   | 'paymentType'
   | 'invoiceDate'
+  | 'direction'
+  | 'attributes'
 
 export type ExpenseColumnMeta = {
   columnKey: ExpenseTableColumnId
@@ -137,6 +139,8 @@ export type ExpenseRow = {
   paymentType: string
   invoiceDate: string
   submittedAt: string
+  direction: string
+  attributes: Record<string, unknown>
   documents: ExpenseDocument[]
   raw: ExpenseRecord
 }
