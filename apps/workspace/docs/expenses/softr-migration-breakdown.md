@@ -131,7 +131,7 @@ Authoritative mirror: `supabase/functions/views/domains/expense/fields.ts` + `fe
 | Submitted by | `SubmittedByCell` | — | Avatar + name |
 | Submitted / invoice date | `EditableDateCell` | `DateCell` read-only | Inline date picker |
 | Direction | `DirectionCell` | — | Badge |
-| Attributes | `AttributesCell` | — | Credit-card tiles + ⋯ |
+| Attributes | `AttributesCell` | ✅ tiles + hover | Editor tile-style overrides |
 | Documents | `DocumentsCell` | Icon strip | Upload + preview modals |
 
 ---
@@ -192,7 +192,8 @@ Forestack v1 uses **server-paginated flat list** (PLM shell). Grouped mode needs
 | Row actions ⋯ menu | ~25% | Menu shell only (View/Edit stubs) |
 | Bulk selection toolbar | ~15% | Page-level checkboxes only — no bulk actions bar |
 | Grouped view | 0% | Group button stub |
-| Documents / attributes / tags cols | ~10% | Cells exist but not in default column set |
+| Documents / tags cols | ~60% | In default columns; docs upload/preview partial |
+| Attributes column | ~85% | Credit-card tiles + ⋯ hover; see `softr-gap-analysis.md` |
 | Payment type edit | 0% | Read-only badge |
 | Detail route / row open | 0% | No expense detail page |
 | Column resize / sticky actions | ~30% | Fixed widths; actions column not sticky on horizontal scroll |

@@ -125,7 +125,10 @@ export function ExpensesPage() {
   }, [signedUrlsQuery.data])
 
   const creditCardsById = React.useMemo(() => {
-    const map = new Map<string, { id: string; title: string; last4: string; bankLabel: string; holderName: string }>()
+    const map = new Map<
+      string,
+      import('@/lib/data/erp/expenses/types').CreditCardCatalogEntry
+    >()
     for (const card of creditCardsQuery.data ?? []) {
       map.set(card.id, card)
     }
