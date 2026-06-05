@@ -3,10 +3,12 @@
 import * as React from 'react'
 import {
   IconCalendar,
+  IconCircleDot,
   IconFilter,
   IconHash,
   IconTag,
   IconUsers,
+  IconX,
 } from '@tabler/icons-react'
 
 import { Button } from '@/components/ui/button'
@@ -24,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { countStructuredFilters } from '../data/query-builder'
 import {
@@ -37,6 +40,7 @@ import type { ActiveFilters } from '../ExpenseAdminTable.types'
 type ExpenseStructuredFiltersProps = {
   companyId: string
   filters: ActiveFilters
+  statuses: ExpenseStatus[]
   onChange: (next: ActiveFilters) => void
   onClear: () => void
 }
@@ -102,9 +106,19 @@ function summary(
   return `${base} · ${selectedIds.length}`
 }
 
+function statusSummary(
+  statusId: string | undefined,
+  statuses: ExpenseStatus[],
+): string {
+  if (!statusId) return 'Status'
+  const hit = statuses.find((s) => s.id === statusId)
+  return hit ? `Status · ${hit.name}` : 'Status'
+}
+
 export function ExpenseStructuredFilters({
   companyId,
   filters,
+  statuses,
   onChange,
   onClear,
 }: ExpenseStructuredFiltersProps) {
@@ -137,11 +151,15 @@ export function ExpenseStructuredFilters({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1.5">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 px-2.5 text-xs"
+        >
           <IconFilter className="size-3.5" />
           Filter
           {structuredCount > 0 ? (
-            <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-primary/10 px-1 text-[10px] font-semibold text-primary">
+            <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-indigo-50 px-1 text-[10px] font-semibold text-indigo-800">
               {structuredCount}
             </span>
           ) : null}
@@ -152,6 +170,46 @@ export function ExpenseStructuredFilters({
           Filters
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <IconCircleDot className="mr-2 size-3.5 opacity-70" />
+            {statusSummary(filters.statusId, statuses)}
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent className="w-56 p-2">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Status
+            </p>
+            <div className="max-h-48 space-y-2 overflow-auto">
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <Checkbox
+                  checked={!filters.statusId}
+                  onCheckedChange={() => patch({ statusId: undefined })}
+                />
+                <span>All statuses</span>
+              </label>
+              {statuses.map((status) => (
+                <label
+                  key={status.id}
+                  className="flex cursor-pointer items-center gap-2 text-sm"
+                >
+                  <Checkbox
+                    checked={filters.statusId === status.id}
+                    onCheckedChange={() =>
+                      patch({
+                        statusId:
+                          filters.statusId === status.id
+                            ? undefined
+                            : status.id,
+                      })
+                    }
+                  />
+                  <span className="truncate">{status.name}</span>
+                </label>
+              ))}
+            </div>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
@@ -216,7 +274,7 @@ export function ExpenseStructuredFilters({
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <IconHash className="mr-2 size-3.5 opacity-70" />
-            Amount range
+            {filters.amountMin || filters.amountMax ? 'Amount · set' : 'Amount'}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-56 p-3">
             <div className="space-y-2">
@@ -247,7 +305,7 @@ export function ExpenseStructuredFilters({
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <IconCalendar className="mr-2 size-3.5 opacity-70" />
-            Submitted date
+            {filters.dateFrom || filters.dateTo ? 'Date · set' : 'Date'}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-56 p-3">
             <div className="space-y-2">
@@ -278,7 +336,10 @@ export function ExpenseStructuredFilters({
         {structuredCount > 0 ? (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onClear}>Clear filters</DropdownMenuItem>
+            <DropdownMenuItem onClick={onClear}>
+              <IconX className="mr-2 size-3.5" />
+              Clear filters
+            </DropdownMenuItem>
           </>
         ) : null}
       </DropdownMenuContent>

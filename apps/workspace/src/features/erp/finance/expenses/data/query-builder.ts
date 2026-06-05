@@ -52,6 +52,7 @@ export function buildExpenseQueryParams(
 
 export function countStructuredFilters(filters: ActiveFilters): number {
   let count = 0
+  if (filters.statusId) count += 1
   if (filters.categoryIds.length) count += 1
   if (filters.projectIds.length) count += 1
   if (filters.departmentValues.length) count += 1

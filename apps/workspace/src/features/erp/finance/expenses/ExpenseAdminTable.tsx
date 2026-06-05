@@ -4,31 +4,25 @@ import * as React from 'react'
 import {
   IconArrowDown,
   IconArrowUp,
-  IconArrowsSort,
 } from '@tabler/icons-react'
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { AmountCell } from './cells/AmountCell'
-import { CategoryCell } from './cells/CategoryCell'
 import { DateCell } from './cells/DateCell'
 import { DocumentsCell } from './cells/DocumentsCell'
 import { PaymentTypeCell } from './cells/PaymentTypeCell'
+import { RowActionsCell } from './cells/RowActionsCell'
 import { StatusCell } from './cells/StatusCell'
 import { SubmittedByCell } from './cells/SubmittedByCell'
 import { TagsCell } from './cells/TagsCell'
 import { TitleCell } from './cells/TitleCell'
 import { VendorCell } from './cells/VendorCell'
 import {
+  EXPENSE_ACTIONS_COLUMN_WIDTH,
+  EXPENSE_CHECKBOX_COLUMN_WIDTH,
   EXPENSE_COLUMN_DEFS,
   expenseTableMinWidth,
 } from './config/column-defs'
@@ -51,6 +45,11 @@ const SORTABLE_COLUMN_MAP: Partial<
   submittedAt: 'created_at',
 }
 
+const thClass =
+  'sticky top-0 z-[3] border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground last:border-r-0'
+const tdClass =
+  'h-12 max-w-0 overflow-hidden border-b border-r border-border/70 px-2 align-middle last:border-r-0'
+
 export function ExpenseAdminTable({
   companyId,
   config,
@@ -63,40 +62,79 @@ export function ExpenseAdminTable({
 }: ExpenseAdminTableProps) {
   const columns = config.columns
   const tableMinWidth = expenseTableMinWidth(columns)
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
+
+  const pageRowIds = React.useMemo(() => rows.map((r) => r.id), [rows])
+  const allSelected =
+    pageRowIds.length > 0 && pageRowIds.every((id) => selectedIds.has(id))
+  const someSelected =
+    !allSelected && pageRowIds.some((id) => selectedIds.has(id))
+
+  const toggleAll = (checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (checked) {
+        for (const id of pageRowIds) next.add(id)
+      } else {
+        for (const id of pageRowIds) next.delete(id)
+      }
+      return next
+    })
+  }
+
+  const toggleRow = (id: string, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (checked) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }
 
   return (
-    <Table
-      className="table-fixed border-0"
+    <table
+      className="expense-grid-table w-full table-fixed border-separate border-spacing-0 text-sm"
       style={{ minWidth: tableMinWidth }}
     >
       <colgroup>
+        <col style={{ width: EXPENSE_CHECKBOX_COLUMN_WIDTH }} />
         {columns.map((columnId) => (
           <col
             key={columnId}
             style={{ width: EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100 }}
           />
         ))}
+        <col style={{ width: EXPENSE_ACTIONS_COLUMN_WIDTH }} />
       </colgroup>
-      <TableHeader>
-        <TableRow className="hover:bg-transparent">
+      <thead>
+        <tr className="hover:bg-transparent">
+          <th
+            className={cn(thClass, 'w-9 text-center')}
+            style={{ width: EXPENSE_CHECKBOX_COLUMN_WIDTH }}
+          >
+            <Checkbox
+              checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+              onCheckedChange={(v) => toggleAll(!!v)}
+              aria-label="Select all rows on this page"
+            />
+          </th>
           {columns.map((columnId) => {
             const def = EXPENSE_COLUMN_DEFS[columnId]
             const label = def?.label ?? columnId
             const sortable = config.sortableColumns.includes(columnId)
             const alignRight = def?.align === 'right'
             const resolvedSort = SORTABLE_COLUMN_MAP[columnId]
+            const HeaderIcon = def?.icon
 
             return (
-              <TableHead
+              <th
                 key={columnId}
-                className={cn(
-                  'bg-muted/30 text-xs font-medium',
-                  alignRight && 'text-right',
-                )}
+                className={cn(thClass, alignRight && 'text-right')}
               >
                 {sortable && resolvedSort ? (
                   <SortableHeader
                     label={label}
+                    icon={HeaderIcon}
                     resolvedSort={resolvedSort}
                     sortColumn={sortColumn}
                     sortDirection={sortDirection}
@@ -104,27 +142,42 @@ export function ExpenseAdminTable({
                     alignRight={alignRight}
                   />
                 ) : (
-                  label
+                  <StaticHeader label={label} icon={HeaderIcon} alignRight={alignRight} />
                 )}
-              </TableHead>
+              </th>
             )
           })}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+          <th
+            className={cn(thClass, 'text-center')}
+            style={{ width: EXPENSE_ACTIONS_COLUMN_WIDTH }}
+            aria-label="Row actions"
+          />
+        </tr>
+      </thead>
+      <tbody>
         {rows.map((row) => (
-          <TableRow key={row.id} className="group">
+          <tr
+            key={row.id}
+            className={cn(
+              'transition-colors hover:bg-muted/40',
+              selectedIds.has(row.id) && 'bg-muted/30',
+            )}
+          >
+            <td className={cn(tdClass, 'text-center')}>
+              <Checkbox
+                checked={selectedIds.has(row.id)}
+                onCheckedChange={(v) => toggleRow(row.id, !!v)}
+                aria-label={`Select row ${row.title || row.id}`}
+              />
+            </td>
             {columns.map((columnId) => {
               const def = EXPENSE_COLUMN_DEFS[columnId]
               const alignRight = def?.align === 'right'
 
               return (
-                <TableCell
+                <td
                   key={columnId}
-                  className={cn(
-                    'max-w-0 overflow-hidden py-2.5',
-                    alignRight && 'text-right',
-                  )}
+                  className={cn(tdClass, alignRight && 'text-right')}
                 >
                   <ExpenseCell
                     columnId={columnId}
@@ -134,13 +187,80 @@ export function ExpenseAdminTable({
                     config={config}
                     readOnly={readOnly}
                   />
-                </TableCell>
+                </td>
               )
             })}
-          </TableRow>
+            <td className={cn(tdClass, 'text-center')}>
+              <RowActionsCell row={row} />
+            </td>
+          </tr>
         ))}
-      </TableBody>
-    </Table>
+      </tbody>
+    </table>
+  )
+}
+
+function StaticHeader({
+  label,
+  icon: Icon,
+  alignRight,
+}: {
+  label: string
+  icon?: React.ComponentType<{ className?: string }>
+  alignRight?: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'flex min-w-0 items-center gap-1.5',
+        alignRight && 'justify-end',
+      )}
+    >
+      {Icon ? <Icon className="size-3 shrink-0 opacity-80" /> : null}
+      <span className="truncate">{label}</span>
+    </div>
+  )
+}
+
+function SortableHeader({
+  label,
+  icon: Icon,
+  resolvedSort,
+  sortColumn,
+  sortDirection,
+  onSortChange,
+  alignRight,
+}: {
+  label: string
+  icon?: React.ComponentType<{ className?: string }>
+  resolvedSort: 'created_at' | 'title' | 'amount'
+  sortColumn: ExpenseAdminTableProps['sortColumn']
+  sortDirection: ExpenseAdminTableProps['sortDirection']
+  onSortChange: ExpenseAdminTableProps['onSortChange']
+  alignRight?: boolean
+}) {
+  const active = sortColumn === resolvedSort
+  const nextDir = active && sortDirection === 'desc' ? 'asc' : 'desc'
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        'flex min-w-0 w-full items-center gap-1.5 text-left',
+        alignRight && 'justify-end',
+      )}
+      onClick={() => onSortChange(resolvedSort, nextDir)}
+    >
+      {Icon ? <Icon className="size-3 shrink-0 opacity-80" /> : null}
+      <span className="truncate">{label}</span>
+      <span className={cn('shrink-0', active ? 'opacity-100' : 'opacity-30')}>
+        {active && sortDirection === 'asc' ? (
+          <IconArrowUp className="size-3" />
+        ) : (
+          <IconArrowDown className="size-3" />
+        )}
+      </span>
+    </button>
   )
 }
 
@@ -186,17 +306,19 @@ function ExpenseCell({
       )
     case 'expenseCategory':
       return (
-        <CategoryCell row={row} companyId={companyId} readOnly={readOnly} />
+        <span className="block truncate text-sm text-foreground">
+          {row.expenseCategory || '—'}
+        </span>
       )
     case 'department':
       return (
-        <span className="block truncate text-xs text-muted-foreground">
+        <span className="block truncate text-sm text-foreground">
           {row.department || '—'}
         </span>
       )
     case 'relatedProject':
       return (
-        <span className="block truncate text-xs text-muted-foreground">
+        <span className="block truncate text-sm text-foreground">
           {row.relatedProject || '—'}
         </span>
       )
@@ -218,47 +340,6 @@ function ExpenseCell({
     default:
       return '—'
   }
-}
-
-function SortableHeader({
-  label,
-  resolvedSort,
-  sortColumn,
-  sortDirection,
-  onSortChange,
-  alignRight,
-}: {
-  label: string
-  resolvedSort: 'created_at' | 'title' | 'amount'
-  sortColumn: ExpenseAdminTableProps['sortColumn']
-  sortDirection: ExpenseAdminTableProps['sortDirection']
-  onSortChange: ExpenseAdminTableProps['onSortChange']
-  alignRight?: boolean
-}) {
-  const active = sortColumn === resolvedSort
-  const nextDir = active && sortDirection === 'desc' ? 'asc' : 'desc'
-
-  return (
-    <button
-      type="button"
-      className={cn(
-        'inline-flex items-center gap-1',
-        alignRight && 'ml-auto',
-      )}
-      onClick={() => onSortChange(resolvedSort, nextDir)}
-    >
-      {label}
-      {active ? (
-        sortDirection === 'asc' ? (
-          <IconArrowUp className="size-3.5" />
-        ) : (
-          <IconArrowDown className="size-3.5" />
-        )
-      ) : (
-        <IconArrowsSort className="size-3.5 opacity-40" />
-      )}
-    </button>
-  )
 }
 
 export { formatExpenseAmount, formatExpenseDate }

@@ -30,11 +30,11 @@ export function SubmittedByCell({ row }: SubmittedByCellProps) {
         {row.submittedByAvatar ? (
           <AvatarImage src={row.submittedByAvatar} alt="" />
         ) : null}
-        <AvatarFallback className="bg-primary/10 text-[10px] font-semibold text-primary">
+        <AvatarFallback className="bg-emerald-50 text-[10px] font-semibold text-emerald-700">
           {initialsFromName(name)}
         </AvatarFallback>
       </Avatar>
-      <span className="truncate text-sm">{name}</span>
+      <span className="truncate text-sm text-foreground">{name}</span>
     </div>
   )
 }

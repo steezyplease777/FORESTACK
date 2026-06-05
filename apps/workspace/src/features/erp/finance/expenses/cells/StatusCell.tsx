@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import * as React from 'react'
+import { IconSelector } from '@tabler/icons-react'
 
 import {
   DropdownMenu,
@@ -27,7 +28,9 @@ function resolveStatusStyle(
   dbColor: string | null,
   statusColors: StatusColorConfig[] = [],
 ): React.CSSProperties | undefined {
-  const fromConfig = statusColors.find((c) => c.statusName === label)
+  const fromConfig = statusColors.find(
+    (c) => c.statusName.toUpperCase() === label.toUpperCase(),
+  )
   if (fromConfig) {
     return {
       color: fromConfig.textColor,
@@ -43,9 +46,11 @@ function resolveStatusStyle(
 function ExpenseStatusBadge({
   label,
   style,
+  interactive,
 }: {
   label: string
   style?: React.CSSProperties
+  interactive?: boolean
 }) {
   if (!label || label === '—') {
     return <span className="text-xs text-muted-foreground">—</span>
@@ -54,13 +59,16 @@ function ExpenseStatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex max-w-full items-center truncate rounded-full px-2.5 py-0.5',
+        'inline-flex max-w-full items-center gap-1 truncate rounded px-2 py-1',
         'text-[11px] font-semibold leading-tight',
         !style && 'bg-muted text-muted-foreground',
       )}
       style={style}
     >
-      {label}
+      <span className="truncate">{label}</span>
+      {interactive ? (
+        <IconSelector className="size-3 shrink-0 opacity-60" />
+      ) : null}
     </span>
   )
 }
@@ -95,6 +103,7 @@ export function StatusCell({
           <ExpenseStatusBadge
             label={row.status || 'Set status'}
             style={badgeStyle}
+            interactive
           />
         </button>
       </DropdownMenuTrigger>

@@ -171,43 +171,65 @@ Forestack v1 uses **server-paginated flat list** (PLM shell). Grouped mode needs
 
 ## Gap analysis vs current Forestack implementation
 
-### Done (v1 shell)
+**Estimated UX parity (manage / flat table): ~42%** (up from ~20% before toolbar + grid rebuild).
 
-- PLM-style page: `PageHeader`, status tabs, search, `rounded-md border` native `Table`
-- `requireTenantSupabase` list + status reference + update mutation
-- `toExpenseRow`, `EXPENSE_FIELD_MAP`, query builder stub
-- `TitleCell`, `StatusCell`, `AmountCell` with inline edit
-- Route search: `q`, `page`, `pageSize`, `statusId`, `sort`, `dir`
+| Area | Parity | Notes |
+| --- | ---: | --- |
+| Toolbar (search + Filter + Group) | ~85% | Status tabs removed; search left, Filter/Group right; status moved into Filter submenu |
+| Table chrome (grid, row height, footer) | ~75% | Raw `<table>` with cell borders, checkbox + actions columns, `N rows` + page nav |
+| Column headers (icon + label + sort) | ~70% | Tabler icons from `column-defs`; sort chevrons on sortable cols |
+| Submitted By cell | ~65% | Avatar initials + name from `attributes.softr_submitted_by_name` |
+| Status / Payment Type badges | ~70% | Config colors, rounded pills, `IconSelector` chevrons; status editable |
+| Title / Amount / Category cells | ~60% | Doc icon + title; currency right-align; category plain truncated text |
+| Structured filters | ~65% | Dept/category/project/tags/amount/date + status in Filter dropdown |
+| Row actions ⋯ menu | ~25% | Menu shell only (View/Edit stubs) |
+| Bulk selection toolbar | ~15% | Page-level checkboxes only — no bulk actions bar |
+| Grouped view | 0% | Group button stub |
+| Documents / attributes / tags cols | ~10% | Cells exist but not in default column set |
+| Payment type edit | 0% | Read-only badge |
+| Detail route / row open | 0% | No expense detail page |
+| Column resize / sticky actions | ~30% | Fixed widths; actions column not sticky on horizontal scroll |
+
+### Done (this branch)
+
+- Softr-style toolbar inside table card: `Search expenses…` + Filter + Group
+- Raw spreadsheet grid (`border-separate`, per-cell borders, ~48px rows)
+- Checkbox column + local row selection state
+- Header icons + sort chevrons per `sortableColumns` config
+- `StatusCell` / `PaymentTypeCell` Softr badge shape (rounded rect + chevrons)
+- `SubmittedByCell`, `TitleCell` doc icon, `RowActionsCell` ⋯ menu
+- Status filter demoted from tabs → Filter submenu
+- `ExpenseStructuredFilters` wired (dept, category, project, tags, amount, date, status)
+- Server list + `toExpenseRow` for submitted_by, payment_type, category
 
 ### Missing vs Softr “right” table
 
 | Area | Gap |
 | --- | --- |
-| Columns | Vendor/category/project/tags/documents columns; config-driven column set |
-| Cells | Link comboboxes (vendor, category); date formatting; tag/document chips |
-| Filters | Structured filter menu (dept/category/project/tags, amount range, date range) |
-| Server | Filter params on `getExpenses`; reference queries (categories, tags, projects) |
-| Config | Status/payment colors, sortable column metadata, page size defaults from Softr |
-| Bulk | Row selection + bulk toolbar |
-| Grouped | Entire view mode |
+| Bulk | Selection URL sync, bulk toolbar, export/webhook actions |
+| Grouped | Group-by server strategy, section headers, infinite scroll |
+| Payment type | Editable `PaymentTypeComboboxCell` |
+| Vendor/category | Inline link comboboxes in default column set (category is display-only today) |
 | Documents | Upload/preview (Supabase storage) |
 | Attributes | Credit-card tiles, uncategorized ⋯ hover |
-| Detail | Row open → expense detail drawer/page |
+| Detail | Row open → expense detail drawer/page; title hover Open button |
+| Column resize | CSS vars `--header-{id}-size`, drag handles |
+| Sticky header/actions | Full sticky thead + right-pinned actions on horizontal scroll |
 
 ---
 
-## Phase 4+ recommended PR slices
+## Phase 4+ recommended PR slices (priority for 50%+ parity)
 
-1. **Documents** — Supabase storage upload, preview modal, `DocumentsCell` actions
-2. **Tags** — `getExpenseTags`, editable `TagsCell`, tag create mutation
-3. **Projects** — editable multi-project combobox + junction writes
-4. **Attributes column** — credit card catalog + tile config from `attributeColumnDisplay`
-5. **Bulk actions** — checkbox column, selection URL sync, webhook/navigation actions
-6. **Grouped view** — group-by server strategy + section headers + infinite scroll
-7. **Expense detail route** — replace Softr record modal (`recordModalPage`)
-8. **Submitted by** — embed `creator:app_company_users` in select + `SubmittedByCell`
-9. **Payment type + direction** — editable comboboxes + badge colors from config
-10. **External embed filters** — parse `?filters=` JSON into server where (read-only embeds)
+1. **Expense detail route** — row open, title hover Open, wire View/Edit actions (~+8%)
+2. **Payment type combobox** — editable badge + `PAYMENT_TYPE_CHOICES` (~+5%)
+3. **Bulk actions bar** — floating toolbar on selection, select-all-matching (~+8%)
+4. **Sticky actions + column resize** — Softr `--header-*-size` pattern (~+5%)
+5. **Documents column** — upload, preview modal, tile strip (~+6%)
+6. **Grouped view** — group-by query + section headers (~+10% but large)
+7. **Tags / projects in default cols** — chips + editable comboboxes (~+4%)
+8. **Submitted by embed** — `app_company_users` avatar URL when creator FK exists (~+3%)
+9. **Attributes column** — credit card catalog tiles (~+4%)
+10. **External embed filters** — parse `?filters=` JSON (read-only embeds)
 
 ---
 

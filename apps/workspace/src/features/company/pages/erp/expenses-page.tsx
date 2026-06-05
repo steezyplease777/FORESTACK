@@ -8,14 +8,12 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconSearch,
 } from '@tabler/icons-react'
 
 import { useCompany } from '@/features/company/tenant-provider'
 import { PageHeader } from '@/components/composites/page-header'
 import { EmptyState } from '@/components/composites/empty-state'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { totalPages } from '@/lib/data/_shared/pagination'
 
@@ -132,59 +130,46 @@ export function ExpensesPage() {
         }
       />
 
-      <div className="flex flex-col gap-3">
-        <ExpenseTableToolbar
-          companyId={companyId}
-          filters={filters}
-          statuses={statuses}
-          sortColumn={sort}
-          sortDirection={dir}
-          onStatusChange={(nextStatusId) =>
-            applyFilters({ ...filters, statusId: nextStatusId })
-          }
-          onFiltersChange={applyFilters}
-          onClearStructuredFilters={() =>
-            applyFilters({
-              ...filters,
-              categoryIds: [],
-              projectIds: [],
-              departmentValues: [],
-              tagIds: [],
-              amountMin: '',
-              amountMax: '',
-              dateFrom: null,
-              dateTo: null,
-            })
-          }
-        />
-
-        <div className="relative">
-          <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="h-9 w-full pl-9"
-            placeholder="Search expenses…"
-            value={searchInput}
-            onChange={(e) => {
-              setSearchInput(e.target.value)
-              commitSearch(e.target.value)
-            }}
-          />
+      {isInitialLoading ? (
+        <TableSkeleton />
+      ) : expensesQuery.error ? (
+        <div className="rounded-md border border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm font-medium text-destructive">
+            Couldn't load expenses
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {expensesQuery.error instanceof Error
+              ? expensesQuery.error.message
+              : 'Unknown error'}
+          </p>
         </div>
-
-        {isInitialLoading ? (
-          <TableSkeleton />
-        ) : expensesQuery.error ? (
-          <div className="rounded-md border border-destructive/20 bg-destructive/5 p-4">
-            <p className="text-sm font-medium text-destructive">
-              Couldn't load expenses
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {expensesQuery.error instanceof Error
-                ? expensesQuery.error.message
-                : 'Unknown error'}
-            </p>
-          </div>
-        ) : rows.length === 0 ? (
+      ) : rows.length === 0 ? (
+        <div className="overflow-hidden rounded-md border">
+          <ExpenseTableToolbar
+            companyId={companyId}
+            filters={filters}
+            statuses={statuses}
+            searchValue={searchInput}
+            onSearchChange={(next) => {
+              setSearchInput(next)
+              commitSearch(next)
+            }}
+            onFiltersChange={applyFilters}
+            onClearStructuredFilters={() =>
+              applyFilters({
+                ...filters,
+                statusId: undefined,
+                categoryIds: [],
+                projectIds: [],
+                departmentValues: [],
+                tagIds: [],
+                amountMin: '',
+                amountMax: '',
+                dateFrom: null,
+                dateTo: null,
+              })
+            }
+          />
           <EmptyState
             title="No expenses found"
             description={
@@ -193,13 +178,41 @@ export function ExpensesPage() {
                 : 'Expenses will appear here once created.'
             }
           />
-        ) : (
-          <div
-            className={cn(
-              'rounded-md border',
-              isPaging ? 'opacity-60 transition-opacity' : undefined,
-            )}
-          >
+        </div>
+      ) : (
+        <div
+          className={cn(
+            'flex flex-col overflow-hidden rounded-md border',
+            isPaging ? 'opacity-60 transition-opacity' : undefined,
+          )}
+        >
+          <ExpenseTableToolbar
+            companyId={companyId}
+            filters={filters}
+            statuses={statuses}
+            searchValue={searchInput}
+            onSearchChange={(next) => {
+              setSearchInput(next)
+              commitSearch(next)
+            }}
+            onFiltersChange={applyFilters}
+            onClearStructuredFilters={() =>
+              applyFilters({
+                ...filters,
+                statusId: undefined,
+                categoryIds: [],
+                projectIds: [],
+                departmentValues: [],
+                tagIds: [],
+                amountMin: '',
+                amountMax: '',
+                dateFrom: null,
+                dateTo: null,
+              })
+            }
+          />
+
+          <div className="overflow-x-auto">
             <ExpenseAdminTable
               companyId={companyId}
               config={DEFAULT_EXPENSE_TABLE_CONFIG}
@@ -218,62 +231,62 @@ export function ExpensesPage() {
                 })
               }
             />
+          </div>
 
-            <div className="flex items-center justify-between gap-4 border-t px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex items-center justify-between gap-4 border-t bg-muted/20 px-3.5 py-1.5 text-xs text-foreground">
+            <span className="tabular-nums">
+              {total.toLocaleString()} rows
+            </span>
+            <div className="flex items-center gap-4">
               <span className="tabular-nums">
-                {total.toLocaleString()} rows
+                Page <strong>{page}</strong> of <strong>{pageCount}</strong>
               </span>
-              <div className="flex items-center gap-2">
-                <span className="tabular-nums">
-                  Page {page} of {pageCount}
-                </span>
-                <div className="flex items-center gap-0.5">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    disabled={page <= 1 || isPaging}
-                    onClick={() => setPage(1)}
-                    aria-label="First page"
-                  >
-                    <IconChevronsLeft className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    disabled={page <= 1 || isPaging}
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    aria-label="Previous page"
-                  >
-                    <IconChevronLeft className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    disabled={page >= pageCount || isPaging}
-                    onClick={() => setPage(Math.min(pageCount, page + 1))}
-                    aria-label="Next page"
-                  >
-                    <IconChevronRight className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    disabled={page >= pageCount || isPaging}
-                    onClick={() => setPage(pageCount)}
-                    aria-label="Last page"
-                  >
-                    <IconChevronsRight className="size-4" />
-                  </Button>
-                </div>
+              <div className="flex items-center gap-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  disabled={page <= 1 || isPaging}
+                  onClick={() => setPage(1)}
+                  aria-label="First page"
+                >
+                  <IconChevronsLeft className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  disabled={page <= 1 || isPaging}
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  aria-label="Previous page"
+                >
+                  <IconChevronLeft className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  disabled={page >= pageCount || isPaging}
+                  onClick={() => setPage(Math.min(pageCount, page + 1))}
+                  aria-label="Next page"
+                >
+                  <IconChevronRight className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  disabled={page >= pageCount || isPaging}
+                  onClick={() => setPage(pageCount)}
+                  aria-label="Last page"
+                >
+                  <IconChevronsRight className="size-3.5" />
+                </Button>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -281,14 +294,15 @@ export function ExpensesPage() {
 function TableSkeleton() {
   return (
     <div className="overflow-hidden rounded-md border">
-      <div className="border-b bg-muted/30 px-3 py-2.5">
-        <div className="h-4 w-full max-w-md animate-pulse rounded bg-muted" />
+      <div className="border-b px-3 py-2">
+        <div className="h-8 w-full max-w-xl animate-pulse rounded bg-muted" />
       </div>
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
           className="flex items-center gap-4 border-b px-3 py-3 last:border-b-0"
         >
+          <div className="size-4 animate-pulse rounded bg-muted" />
           <div className="h-4 w-24 animate-pulse rounded bg-muted" />
           <div className="h-4 w-20 animate-pulse rounded bg-muted" />
           <div className="h-4 w-16 animate-pulse rounded bg-muted" />
