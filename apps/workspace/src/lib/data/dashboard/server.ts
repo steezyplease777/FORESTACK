@@ -6,8 +6,7 @@ import { getErpBundle } from '@/lib/data/portal-bundles/erp/server'
 import { getPlmBundle } from '@/lib/data/portal-bundles/plm/server'
 import { getPmBundle } from '@/lib/data/portal-bundles/pm/server'
 import { getWmsBundle } from '@/lib/data/portal-bundles/wms/server'
-import { getTenantSupabase } from '@/lib/data/_shared/tenant-supabase'
-
+import { fetchOrdersDashboard } from './fetch-orders-dashboard.server'
 import { resolveDashboardPortals } from './portals'
 import type { DashboardBundle, DashboardPortalSlug, OrdersDashboardData } from './types'
 
@@ -22,28 +21,7 @@ import type { DashboardBundle, DashboardPortalSlug, OrdersDashboardData } from '
 export const getOrdersDashboard = createServerFn({ method: 'GET' })
   .inputValidator((data: { companySlug: string }) => data)
   .handler(async ({ data }): Promise<OrdersDashboardData> => {
-    const { companySlug } = data
-    const supabase = await getTenantSupabase()
-
-    const { data: bundle, error } = await supabase.rpc(
-      'get_orders_dashboard',
-      { p_company_slug: companySlug },
-    )
-
-    if (error) {
-      if (error.message?.includes('not_authenticated')) {
-        throw new Error('Unauthorized')
-      }
-      if (error.message?.includes('company_not_found')) {
-        throw new Error('Company not found')
-      }
-      if (error.message?.includes('not_company_member')) {
-        throw new Error('Forbidden')
-      }
-      throw new Error(error.message)
-    }
-
-    return bundle as unknown as OrdersDashboardData
+    return fetchOrdersDashboard(data.companySlug)
   })
 
 /**
@@ -62,8 +40,10 @@ export const getDashboardBundle = createServerFn({ method: 'GET' })
     const tasks: Promise<void>[] = []
 
     if (portals.includes('home')) {
+      // Inline the RPC in-process so nested server-fn HTTP does not drop
+      // the WorkOS httpOnly cookie from the parent handler's request.
       tasks.push(
-        getOrdersDashboard({ data: { companySlug } }).then((orders) => {
+        fetchOrdersDashboard(companySlug).then((orders) => {
           bundle.home = { orders }
         }),
       )
