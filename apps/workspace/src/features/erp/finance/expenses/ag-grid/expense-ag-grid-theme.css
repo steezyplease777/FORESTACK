@@ -121,17 +121,28 @@
 
 .ag-theme-expense-shadcn .ag-header-cell,
 .ag-theme-expense-shadcn .ag-header-group-cell {
+  box-sizing: border-box !important;
   background-color: var(--card) !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   color: var(--foreground) !important;
   padding-inline: 8px !important;
   border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent) !important;
+  height: var(--ag-header-height);
+  max-height: var(--ag-header-height);
+  overflow: hidden;
+}
+
+.ag-theme-expense-shadcn .ag-header-cell-label,
+.ag-theme-expense-shadcn .ag-header-cell-comp-wrapper {
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  min-width: 0;
 }
 
 .ag-theme-expense-shadcn .ag-header-cell-label {
   gap: 6px;
-  width: 100%;
 }
 
 /* Hide AG Grid default sort icons — custom header renders chevrons */
@@ -147,6 +158,7 @@
 }
 
 .ag-theme-expense-shadcn .ag-cell {
+  box-sizing: border-box !important;
   display: flex !important;
   align-items: center !important;
   overflow: hidden;
@@ -201,10 +213,17 @@
 /* Pinned right actions — solid bg + left edge shadow (legacy actionsTh/td) */
 .ag-theme-expense-shadcn .ag-pinned-right-header,
 .ag-theme-expense-shadcn .ag-pinned-right-cols-container .ag-cell {
+  box-sizing: border-box !important;
   background-color: var(--card) !important;
   border-left: 1px solid var(--border) !important;
   border-right: none !important;
   box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.14);
+}
+
+/* Pinned left/right headers share body column widths — no extra chrome */
+.ag-theme-expense-shadcn .ag-pinned-left-header .ag-header-cell,
+.ag-theme-expense-shadcn .ag-pinned-right-header .ag-header-cell {
+  box-sizing: border-box !important;
 }
 
 .ag-theme-expense-shadcn .expense-ag-actions-header,

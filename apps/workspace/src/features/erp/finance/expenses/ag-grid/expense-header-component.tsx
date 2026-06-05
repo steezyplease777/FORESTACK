@@ -9,8 +9,40 @@ import { cn } from '@/lib/utils'
 import { EXPENSE_COLUMN_DEFS } from '../config/column-defs'
 import type { ExpenseTableColumnId } from '../ExpenseAdminTable.types'
 
+const headerShellClass =
+  'flex h-full min-h-0 min-w-0 w-full items-center gap-1.5 text-xs font-medium'
+
+/** Fixed slot so sort icon toggling never shifts column width. */
+function SortIconSlot({
+  sortable,
+  sort,
+}: {
+  sortable: boolean
+  sort: 'asc' | 'desc' | null | undefined
+}) {
+  if (!sortable) return null
+
+  return (
+    <span
+      className={cn(
+        'inline-flex size-3 shrink-0 items-center justify-center',
+        sort ? 'opacity-100' : 'opacity-30',
+      )}
+      aria-hidden
+    >
+      {sort === 'asc' ? (
+        <IconArrowUp className="size-3" />
+      ) : (
+        <IconArrowDown className="size-3" />
+      )}
+    </span>
+  )
+}
+
 /** Spreadsheet header — icon + label + sort chevron (legacy SortableHeader). */
-export function ExpenseColumnHeader(params: IHeaderParams) {
+export const ExpenseColumnHeader = React.memo(function ExpenseColumnHeader(
+  params: IHeaderParams,
+) {
   const [, setTick] = React.useState(0)
 
   React.useEffect(() => {
@@ -39,27 +71,14 @@ export function ExpenseColumnHeader(params: IHeaderParams) {
   const content = (
     <>
       {Icon ? <Icon className="size-3 shrink-0 opacity-80" /> : null}
-      <span className="truncate">{label}</span>
-      {sortable ? (
-        <span className={cn('shrink-0', sort ? 'opacity-100' : 'opacity-30')}>
-          {sort === 'asc' ? (
-            <IconArrowUp className="size-3" />
-          ) : (
-            <IconArrowDown className="size-3" />
-          )}
-        </span>
-      ) : null}
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <SortIconSlot sortable={sortable} sort={sort} />
     </>
   )
 
   if (!sortable) {
     return (
-      <div
-        className={cn(
-          'flex min-w-0 w-full items-center gap-1.5 text-xs font-medium',
-          alignRight && 'justify-end',
-        )}
-      >
+      <div className={cn(headerShellClass, alignRight && 'justify-end')}>
         {content}
       </div>
     )
@@ -69,7 +88,8 @@ export function ExpenseColumnHeader(params: IHeaderParams) {
     <button
       type="button"
       className={cn(
-        'flex min-w-0 w-full items-center gap-1.5 text-left text-xs font-medium',
+        headerShellClass,
+        'text-left',
         alignRight && 'justify-end',
       )}
       onClick={onClick}
@@ -77,4 +97,4 @@ export function ExpenseColumnHeader(params: IHeaderParams) {
       {content}
     </button>
   )
-}
+})

@@ -192,6 +192,7 @@ export function ExpenseAgGrid({
         },
       ],
     })
+    api.refreshHeader()
   }, [bulkEnabled, config.columns])
 
   const handleGridReady = React.useCallback(
@@ -281,7 +282,10 @@ export function ExpenseAgGrid({
           headerHeight={EXPENSE_ROW_HEIGHT}
           domLayout="normal"
           alwaysShowHorizontalScroll
-          suppressColumnVirtualisation={false}
+          suppressColumnVirtualisation
+          suppressColumnMoveAnimation
+          maintainColumnOrder
+          ensureDomOrder
           suppressCellFocus
           suppressRowHoverHighlight={false}
           animateRows={false}
