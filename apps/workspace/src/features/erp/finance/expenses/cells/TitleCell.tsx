@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import * as React from 'react'
+import { IconReceipt } from '@tabler/icons-react'
 
 import { Input } from '@/components/ui/input'
 
@@ -29,37 +30,52 @@ export function TitleCell({ row, companyId, readOnly }: TitleCellProps) {
     update.mutate({ id: row.id, patch: { title: next } })
   }
 
-  if (readOnly) {
-    return <span className="font-medium">{row.title || '—'}</span>
-  }
-
-  if (!editing) {
-    return (
-      <button
-        type="button"
-        className="max-w-[280px] truncate text-left font-medium hover:underline"
-        onClick={() => setEditing(true)}
-      >
-        {row.title || 'Untitled'}
-      </button>
+  const titleContent =
+    readOnly || !editing ? (
+      readOnly ? (
+        <span className="truncate text-sm font-medium">
+          {row.title || '—'}
+        </span>
+      ) : (
+        <button
+          type="button"
+          className="truncate text-left text-sm font-medium hover:underline"
+          onClick={() => setEditing(true)}
+        >
+          {row.title || 'Untitled'}
+        </button>
+      )
+    ) : (
+      <Input
+        className="h-7 text-sm"
+        value={draft}
+        autoFocus
+        disabled={update.isPending}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') {
+            setDraft(row.title)
+            setEditing(false)
+          }
+        }}
+      />
     )
-  }
 
   return (
-    <Input
-      className="h-8"
-      value={draft}
-      autoFocus
-      disabled={update.isPending}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') commit()
-        if (e.key === 'Escape') {
-          setDraft(row.title)
-          setEditing(false)
-        }
-      }}
-    />
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-muted">
+        <IconReceipt className="size-4 text-muted-foreground" />
+      </div>
+      <div className="flex min-w-0 flex-col">
+        {titleContent}
+        {row.expenseCategory ? (
+          <span className="truncate text-xs text-muted-foreground">
+            {row.expenseCategory}
+          </span>
+        ) : null}
+      </div>
+    </div>
   )
 }

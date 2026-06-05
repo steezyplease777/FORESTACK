@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 import { useExpenseUpdate } from '../data/use-expense-update'
 import { formatExpenseAmount } from '../data/to-row'
@@ -33,39 +34,44 @@ export function AmountCell({ row, companyId, readOnly }: AmountCellProps) {
     update.mutate({ id: row.id, patch: { amount: parsed } })
   }
 
+  const displayClass = cn(
+    'block text-right font-medium tabular-nums',
+    readOnly && 'w-full',
+  )
+
   if (readOnly) {
     return (
-      <span className="tabular-nums">{formatExpenseAmount(row.amount)}</span>
+      <span className={displayClass}>{formatExpenseAmount(row.amount)}</span>
     )
   }
 
-  if (!editing) {
+  if (editing) {
     return (
-      <button
-        type="button"
-        className="tabular-nums text-left hover:underline"
-        onClick={() => setEditing(true)}
-      >
-        {formatExpenseAmount(row.amount)}
-      </button>
+      <Input
+        className="ml-auto h-7 w-24 tabular-nums"
+        value={draft}
+        autoFocus
+        disabled={update.isPending}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') {
+            setDraft(row.amount != null ? String(row.amount) : '')
+            setEditing(false)
+          }
+        }}
+      />
     )
   }
 
   return (
-    <Input
-      className="h-8 w-28 tabular-nums"
-      value={draft}
-      autoFocus
-      disabled={update.isPending}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') commit()
-        if (e.key === 'Escape') {
-          setDraft(row.amount != null ? String(row.amount) : '')
-          setEditing(false)
-        }
-      }}
-    />
+    <button
+      type="button"
+      className={cn(displayClass, 'hover:underline')}
+      onClick={() => setEditing(true)}
+    >
+      {formatExpenseAmount(row.amount)}
+    </button>
   )
 }

@@ -2,6 +2,9 @@
 
 import * as React from 'react'
 import {
+  IconArrowDown,
+  IconArrowUp,
+  IconArrowsSort,
   IconChevronLeft,
   IconChevronRight,
 } from '@tabler/icons-react'
@@ -27,7 +30,6 @@ import {
   useExpenseStatuses,
   useExpenses,
 } from './data/use-expenses-query'
-import { ExpenseTableToolbar } from './filters/ExpenseTableToolbar'
 import type {
   ExpenseAdminTableProps,
   ExpenseRow,
@@ -53,7 +55,6 @@ export function ExpenseAdminTable({
   pageSize,
   sortColumn,
   sortDirection,
-  onFiltersChange,
   onPageChange,
   onSortChange,
   readOnly,
@@ -126,7 +127,7 @@ export function ExpenseAdminTable({
         case 'amount':
           return {
             id: columnId,
-            header,
+            header: () => <span className="block text-right">{label}</span>,
             meta: { cellClassName: 'text-right', headClassName: 'text-right' },
             cell: ({ row }) => (
               <AmountCell
@@ -140,21 +141,20 @@ export function ExpenseAdminTable({
           return {
             id: columnId,
             header,
-            cell: ({ row }) => (
-              <span className="text-muted-foreground">
-                {row.original.vendor || '—'}
-              </span>
-            ),
+            cell: ({ row }) => row.original.vendor || '—',
           }
         case 'expenseCategory':
           return {
             id: columnId,
             header,
-            cell: ({ row }) => (
-              <span className="text-muted-foreground">
-                {row.original.expenseCategory || '—'}
-              </span>
-            ),
+            cell: ({ row }) =>
+              row.original.expenseCategory ? (
+                <span className="text-muted-foreground">
+                  {row.original.expenseCategory}
+                </span>
+              ) : (
+                '—'
+              ),
           }
         case 'department':
           return {
@@ -171,7 +171,7 @@ export function ExpenseAdminTable({
             id: columnId,
             header,
             cell: ({ row }) => (
-              <span className="text-muted-foreground">
+              <span className="block max-w-[160px] truncate text-muted-foreground">
                 {row.original.relatedProject || '—'}
               </span>
             ),
@@ -206,33 +206,6 @@ export function ExpenseAdminTable({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-        <p className="text-sm text-muted-foreground tabular-nums">
-          {rows.length > 0 ? (
-            <>
-              Showing{' '}
-              <span className="font-medium text-foreground">
-                {(page - 1) * pageSize + 1}–
-                {(page - 1) * pageSize + rows.length}
-              </span>{' '}
-              of{' '}
-              <span className="font-medium text-foreground">
-                {total.toLocaleString()}
-              </span>
-              {filters.q ? ` · filtered by "${filters.q}"` : ''}
-            </>
-          ) : (
-            'No results'
-          )}
-        </p>
-        <ExpenseTableToolbar
-          filters={filters}
-          statuses={statuses}
-          onSearchChange={(q) => onFiltersChange({ q })}
-          onStatusChange={(statusId) => onFiltersChange({ statusId })}
-        />
-      </div>
-
       <CardContent className="p-0">
         {isInitialLoading ? (
           <p className="py-20 text-center text-sm text-muted-foreground">
@@ -272,7 +245,9 @@ export function ExpenseAdminTable({
       {pageCount > 1 ? (
         <div className="flex items-center justify-between gap-4 border-t px-4 py-3">
           <p className="text-xs text-muted-foreground tabular-nums">
-            Page {page} of {pageCount} · {pageSize} per page
+            Showing {(page - 1) * pageSize + 1}–
+            {(page - 1) * pageSize + rows.length} of {total.toLocaleString()} ·
+            Page {page} of {pageCount}
           </p>
           <div className="flex items-center gap-1.5">
             <Button
@@ -328,11 +303,19 @@ function SortableHeader({
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-1 font-medium hover:underline"
+      className="inline-flex items-center gap-1"
       onClick={() => onSortChange(resolved, nextDir)}
     >
       {label}
-      {active ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : null}
+      {active ? (
+        sortDirection === 'asc' ? (
+          <IconArrowUp className="size-3.5" />
+        ) : (
+          <IconArrowDown className="size-3.5" />
+        )
+      ) : (
+        <IconArrowsSort className="size-3.5 opacity-40" />
+      )}
     </button>
   )
 }

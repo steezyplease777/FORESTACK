@@ -1,15 +1,12 @@
 // @ts-nocheck
 
-import * as React from 'react'
-
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/reui/badge'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { useExpenseUpdate } from '../data/use-expense-update'
@@ -22,6 +19,26 @@ type StatusCellProps = {
   readOnly?: boolean
 }
 
+function ExpenseStatusBadge({
+  label,
+  color,
+}: {
+  label: string
+  color: string | null
+}) {
+  return (
+    <Badge
+      variant="outline"
+      size="sm"
+      style={
+        color ? { borderColor: color, color } : undefined
+      }
+    >
+      {label}
+    </Badge>
+  )
+}
+
 export function StatusCell({
   row,
   companyId,
@@ -32,53 +49,39 @@ export function StatusCell({
 
   if (readOnly || statuses.length === 0) {
     return (
-      <Badge
-        variant="outline"
-        style={
-          row.statusColor
-            ? { borderColor: row.statusColor, color: row.statusColor }
-            : undefined
-        }
-      >
-        {row.status || '—'}
-      </Badge>
+      <ExpenseStatusBadge
+        label={row.status || '—'}
+        color={row.statusColor}
+      />
     )
   }
 
   return (
-    <Select
-      value={row.statusId ?? ''}
-      onValueChange={(statusId) => {
-        if (statusId === row.statusId) return
-        update.mutate({ id: row.id, patch: { status_id: statusId } })
-      }}
-      disabled={update.isPending}
-    >
-      <SelectTrigger className="h-8 w-[140px] border-none bg-transparent shadow-none">
-        <SelectValue placeholder="Status">
-          {row.status ? (
-            <Badge
-              variant="outline"
-              style={
-                row.statusColor
-                  ? { borderColor: row.statusColor, color: row.statusColor }
-                  : undefined
-              }
-            >
-              {row.status}
-            </Badge>
-          ) : (
-            'Set status'
-          )}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {statuses.map((s) => (
-          <SelectItem key={s.id} value={s.id}>
-            {s.name}
-          </SelectItem>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={update.isPending}>
+        <button
+          type="button"
+          className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ExpenseStatusBadge
+            label={row.status || 'Set status'}
+            color={row.statusColor}
+          />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {statuses.map((status) => (
+          <DropdownMenuItem
+            key={status.id}
+            onClick={() => {
+              if (status.id === row.statusId) return
+              update.mutate({ id: row.id, patch: { status_id: status.id } })
+            }}
+          >
+            <ExpenseStatusBadge label={status.name} color={status.color} />
+          </DropdownMenuItem>
         ))}
-      </SelectContent>
-    </Select>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

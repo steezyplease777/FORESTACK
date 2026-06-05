@@ -46,7 +46,6 @@ export type ExpenseAdminTableProps = {
   pageSize: number
   sortColumn: 'created_at' | 'title' | 'amount'
   sortDirection: 'asc' | 'desc'
-  onFiltersChange: (next: Partial<ActiveFilters>) => void
   onPageChange: (page: number) => void
   onSortChange: (
     column: 'created_at' | 'title' | 'amount',
