@@ -3,6 +3,7 @@ import { createServerFn } from '@tanstack/react-start'
 import type { EmailOtpType } from '@supabase/supabase-js'
 
 import { createClient } from '@/lib/datasource/supabase/server'
+import { tenantPostAuthRedirect } from '@/lib/routing/tenant-post-auth-redirect'
 import { safeRelativeRedirectPath } from '@/lib/utils/safe-redirect'
 
 type ConfirmSearch = {
@@ -53,6 +54,6 @@ export const Route = createFileRoute('/$companySlug/auth/confirm')({
         search: { error: result.message } as any,
       })
     }
-    throw redirect({ href: result.next as string })
+    tenantPostAuthRedirect(params.companySlug, result.next)
   },
 })

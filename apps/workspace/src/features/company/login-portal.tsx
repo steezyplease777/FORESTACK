@@ -69,7 +69,7 @@ export function LoginForm({
       await signInWithOtpFn({
         data: {
           email: trimmed,
-          emailRedirectTo: `${origin}/auth/confirm?next=/`,
+          emailRedirectTo: `${origin}/auth/confirm?next=/dashboard`,
         },
       })
       setStatus('sent')

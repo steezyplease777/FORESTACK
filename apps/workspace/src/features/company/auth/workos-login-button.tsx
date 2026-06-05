@@ -21,7 +21,7 @@ function encodeOAuthState(companySlug: string, nextPath: string): string {
 export function WorkOSLoginButton({
   companySlug,
   connection,
-  nextPath = '/',
+  nextPath = '/dashboard',
 }: WorkOSLoginButtonProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)

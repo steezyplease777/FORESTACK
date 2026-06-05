@@ -5,6 +5,7 @@ import { handleWorkOSCallbackFn } from '@/lib/auth/workos'
 import { jitLinkWorkOsCompanyUser } from '@/lib/auth/workos/jit-link'
 import { buildWorkOsRedirectUri } from '@/lib/auth/workos/redirect-uri'
 import { resolveCompanyBySlug } from '@/lib/providers/tenant'
+import { tenantPostAuthRedirect } from '@/lib/routing/tenant-post-auth-redirect'
 import { safeRelativeRedirectPath } from '@/lib/utils/safe-redirect'
 import { WorkOSNotConfiguredError } from '@/lib/auth/workos/types'
 
@@ -119,6 +120,6 @@ export const Route = createFileRoute('/$companySlug/auth/workos-callback')({
       })
     }
 
-    throw redirect({ href: result.next })
+    tenantPostAuthRedirect(params.companySlug, result.next)
   },
 })
