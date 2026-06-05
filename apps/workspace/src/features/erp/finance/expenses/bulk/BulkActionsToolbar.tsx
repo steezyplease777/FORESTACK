@@ -295,7 +295,7 @@ export function BulkActionsToolbar({
         ref={toolbarRef}
         role="toolbar"
         aria-label="Bulk actions"
-        className="bulk-actions-toolbar relative inline-flex w-max max-w-[50svw] flex-nowrap items-center gap-2 whitespace-nowrap rounded-2xl border border-white/10 bg-foreground px-4 py-2.5 text-background shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-300"
+        className="bulk-actions-toolbar relative flex w-full min-w-0 flex-nowrap items-center justify-between gap-2 whitespace-nowrap rounded-2xl border border-white/10 bg-foreground px-4 py-2.5 text-background shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-300"
       >
         <div
           ref={stableRef}
@@ -315,7 +315,7 @@ export function BulkActionsToolbar({
           </button>
         </div>
 
-        <div className="flex shrink-0 flex-nowrap items-center gap-2">
+        <div className="flex min-w-0 shrink-0 flex-nowrap items-center justify-end gap-2">
           {inlineActions.map((id) => renderActionButton(id))}
 
           {overflowActions.length > 0 ? (
