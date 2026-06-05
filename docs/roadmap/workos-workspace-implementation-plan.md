@@ -139,6 +139,7 @@ apps/workspace/src/
       resolve-org-idp.ts           # loadOrgIdP(organizationId) — DB stub
       get-authorization-url.ts     # createServerFn — build AuthKit auth URL
       handle-callback.ts           # createServerFn — code → tokens
+      redirect-uri.ts              # Per-tenant callback URL builder
       index.ts                     # Barrel exports
 
   routes/$companySlug/
