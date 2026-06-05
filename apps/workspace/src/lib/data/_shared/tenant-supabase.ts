@@ -11,3 +11,19 @@ export async function getTenantSupabase() {
   )
   return createTenantClient()
 }
+
+/**
+ * Tenant-scoped Supabase client plus a session check that works with WorkOS
+ * Third-Party Auth (no `auth.getUser()` on an accessToken-configured client).
+ */
+export async function requireTenantSupabase() {
+  const { resolveTenantSession } = await import(
+    '@/lib/datasource/supabase/tenant-session.server'
+  )
+  const session = await resolveTenantSession()
+  if (!session.isAuthenticated) {
+    throw new Error('Unauthorized')
+  }
+  const supabase = await getTenantSupabase()
+  return { supabase, session }
+}

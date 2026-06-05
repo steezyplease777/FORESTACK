@@ -1,14 +1,14 @@
 // @ts-nocheck
 import { createServerFn } from '@tanstack/react-start'
 
-import { requireAuthedSupabase } from '@/lib/data/_shared/auth'
+import { requireTenantSupabase } from '@/lib/data/_shared/tenant-supabase'
 
 import type { TeamMember } from './client'
 
 export const getCompanyUsers = createServerFn({ method: 'GET' })
   .inputValidator((data: { companyId: string }) => data)
   .handler(async ({ data }): Promise<TeamMember[]> => {
-    const { supabase } = await requireAuthedSupabase()
+    const { supabase } = await requireTenantSupabase()
     const { data: rows, error } = await supabase
       .from('app_company_users')
       .select(
@@ -49,7 +49,7 @@ export const getDepartmentTeam = createServerFn({ method: 'GET' })
   .inputValidator((data: { companyId: string; currentUserCompanyUserId: string }) => data)
   .handler(
     async ({ data }): Promise<{ members: TeamMember[]; departmentName: string | null }> => {
-      const { supabase } = await requireAuthedSupabase()
+      const { supabase } = await requireTenantSupabase()
       const { data: currentUser } = await supabase
         .from('app_company_users')
         .select('department_title_id (department_id)')

@@ -32,7 +32,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCompany } from "@/features/company/tenant-provider";
-import { useTenantUser } from "@/lib/data/user/tenant/hooks";
 import {
   useCompanyTeam,
   useDepartmentTeam,
@@ -460,9 +459,8 @@ function TableSkeleton({ rows = 3 }: { rows?: number }) {
 }
 
 export function TeamPage() {
-  const { company, userId } = useCompany();
+  const { company, companyUser } = useCompany();
   const companyId = company?.companyId ?? "";
-  const { data: companyUser } = useTenantUser(companyId, userId ?? "");
   const { tab, member: memberId } = routeApi.useSearch();
   const navigate = routeApi.useNavigate();
   const setTab = (t: "company" | "department") =>
@@ -482,7 +480,7 @@ export function TeamPage() {
   const {
     data: departmentData,
     isLoading: deptLoading,
-  } = useDepartmentTeam(companyId, companyUser?.id ?? "");
+  } = useDepartmentTeam(companyId, companyUser?.companyUserId ?? "");
 
   const companyName = company?.name ?? "Company";
 
