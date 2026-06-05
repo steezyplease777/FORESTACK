@@ -26,7 +26,9 @@ export { resolveOrgIdpFn } from '@/lib/auth/workos/resolve-org-idp'
 export type { ResolvedOrgIdp } from '@/lib/auth/workos/resolve-org-idp'
 
 export {
+  WorkOSMissingConnectionSelectorError,
   WorkOSNotConfiguredError,
+  isWorkOsMissingConnectionSelectorError,
   isWorkOsNotConfiguredError,
   workOsConfigFromRow,
   type WorkOSAuthorizeInput,

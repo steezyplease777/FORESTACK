@@ -6,7 +6,10 @@ import {
   type WorkOSConnectionConfig,
 } from '@/lib/auth/workos'
 import { buildWorkOsRedirectUri } from '@/lib/auth/workos/redirect-uri'
-import { isWorkOsNotConfiguredError } from '@/lib/auth/workos/types'
+import {
+  isWorkOsMissingConnectionSelectorError,
+  isWorkOsNotConfiguredError,
+} from '@/lib/auth/workos/types'
 
 type WorkOSLoginButtonProps = {
   companySlug: string
@@ -54,6 +57,14 @@ export function WorkOSLoginButton({
           err instanceof Error
             ? err.message
             : 'WorkOS is not configured. Set WORKOS_API_KEY and WORKOS_CLIENT_ID.',
+        )
+        return
+      }
+      if (isWorkOsMissingConnectionSelectorError(err)) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'WorkOS SSO is missing an organization or connection id.',
         )
         return
       }

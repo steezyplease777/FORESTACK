@@ -55,6 +55,15 @@ export class WorkOSNotConfiguredError extends Error {
   }
 }
 
+export class WorkOSMissingConnectionSelectorError extends Error {
+  constructor(
+    message = 'WorkOS SSO requires a WorkOS organization or connection. Set WORKOS_DEV_ORGANIZATION_ID in .env.local (dev) or add workos_organization_id to the org IdP config in app_organization_identity_providers.',
+  ) {
+    super(message)
+    this.name = 'WorkOSMissingConnectionSelectorError'
+  }
+}
+
 /** Server-fn errors lose their class across the wire; match by name or message too. */
 export function isWorkOsNotConfiguredError(err: unknown): boolean {
   return (
@@ -62,5 +71,15 @@ export function isWorkOsNotConfiguredError(err: unknown): boolean {
     (err instanceof Error &&
       (err.name === 'WorkOSNotConfiguredError' ||
         err.message.includes('WorkOS is not configured')))
+  )
+}
+
+export function isWorkOsMissingConnectionSelectorError(err: unknown): boolean {
+  return (
+    err instanceof WorkOSMissingConnectionSelectorError ||
+    (err instanceof Error &&
+      (err.name === 'WorkOSMissingConnectionSelectorError' ||
+        err.message.includes('WORKOS_DEV_ORGANIZATION_ID') ||
+        err.message.includes('workos_organization_id')))
   )
 }

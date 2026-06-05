@@ -4,7 +4,10 @@ import {
   requireWorkOsEnv,
   workOsApiOrigin,
 } from '@/lib/auth/workos/config'
-import type { WorkOSAuthorizeInput } from '@/lib/auth/workos/types'
+import {
+  WorkOSMissingConnectionSelectorError,
+  type WorkOSAuthorizeInput,
+} from '@/lib/auth/workos/types'
 
 function readEnv(name: string): string | undefined {
   return (
@@ -43,10 +46,14 @@ function buildAuthorizationUrl(
     input.connection?.organizationId
   const connectionId = input.connection?.connectionId
 
+  // AuthKit user_management/authorize expects connection_id or organization_id.
+  // @see https://workos.com/docs/reference/authkit/authentication/get-authorization-url
   if (connectionId) {
-    params.set('connection', connectionId)
+    params.set('connection_id', connectionId)
   } else if (orgId) {
-    params.set('organization', orgId)
+    params.set('organization_id', orgId)
+  } else {
+    throw new WorkOSMissingConnectionSelectorError()
   }
 
   return `${origin}/user_management/authorize?${params.toString()}`
