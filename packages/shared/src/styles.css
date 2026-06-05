@@ -12,6 +12,13 @@
 @import "shadcn/tailwind.css";
 @plugin "@tailwindcss/typography";
 
+/* Monorepo: @tailwindcss/vite only auto-scans the app package. Register
+   shared UI (sidebar, shells, …) and both deployable apps explicitly so
+   utilities like w-(--sidebar-width) are emitted into the bundle. */
+@source "./**/*.{ts,tsx}";
+@source "../../../apps/workspace/src/**/*.{ts,tsx}";
+@source "../../../apps/studio/src/**/*.{ts,tsx}";
+
 @custom-variant dark (&:is(.dark *));
 
 /* Font variables the @theme block below reads. In the Next.js app these were
