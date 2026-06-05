@@ -3,7 +3,6 @@
 import * as React from 'react'
 import {
   IconFile,
-  IconPaperclip,
   IconUpload,
 } from '@tabler/icons-react'
 
@@ -145,7 +144,7 @@ export function DocumentsCell({
               }}
               aria-label="Upload document"
             >
-              <IconPaperclip className="size-3.5" />
+              <IconUpload className="size-3.5" />
               <span>Upload</span>
             </button>
           ) : (
@@ -153,13 +152,6 @@ export function DocumentsCell({
           )
         ) : (
           <>
-            <span
-              className="inline-flex items-center gap-0.5 text-[10px] font-normal text-muted-foreground"
-              title={`${documents.length} document${documents.length === 1 ? '' : 's'}`}
-            >
-              <IconPaperclip className="size-3" />
-              {documents.length}
-            </span>
             {visible.map((doc) => {
               const url = signedUrlsByDocId?.get(doc.id)
               const mime = doc.extension ?? ''
