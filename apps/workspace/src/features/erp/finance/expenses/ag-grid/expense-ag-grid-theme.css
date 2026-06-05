@@ -1,0 +1,97 @@
+/**
+ * AG Grid quartz theme overrides — maps AG Grid CSS variables to shadcn tokens
+ * so the expense spreadsheet matches the existing Forestack table chrome.
+ */
+.expense-ag-grid.ag-theme-quartz {
+  --ag-background-color: var(--background);
+  --ag-foreground-color: var(--foreground);
+  --ag-secondary-foreground-color: var(--muted-foreground);
+  --ag-header-background-color: var(--background);
+  --ag-header-foreground-color: var(--foreground);
+  --ag-odd-row-background-color: var(--background);
+  --ag-row-hover-color: color-mix(in srgb, var(--muted) 40%, var(--background));
+  --ag-selected-row-background-color: color-mix(
+    in srgb,
+    var(--muted) 30%,
+    var(--background)
+  );
+  --ag-border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-row-border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-header-column-separator-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-font-family: inherit;
+  --ag-font-size: 0.875rem;
+  --ag-grid-size: 6px;
+  --ag-cell-horizontal-padding: 8px;
+  --ag-header-height: 40px;
+  --ag-row-height: 48px;
+  --ag-checkbox-checked-color: var(--primary);
+  --ag-checkbox-unchecked-color: var(--border);
+  --ag-checkbox-indeterminate-color: var(--primary);
+  --ag-active-color: var(--primary);
+  --ag-input-focus-border-color: var(--ring);
+  --ag-range-selection-border-color: var(--primary);
+  --ag-icon-font-color: var(--muted-foreground);
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-root-wrapper {
+  border: none;
+  border-radius: 0;
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-header-cell {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-cell {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-cell.expense-ag-cell-overflow-visible {
+  overflow: visible;
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-pinned-right-header,
+.expense-ag-grid.ag-theme-quartz .ag-cell.ag-cell-last-left-pinned,
+.expense-ag-grid.ag-theme-quartz .ag-pinned-right-cols-container .ag-cell {
+  background-color: var(--background);
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-pinned-right-header {
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.14);
+}
+
+.expense-ag-grid.ag-theme-quartz
+  .ag-pinned-right-cols-container
+  .ag-row-hover
+  .ag-cell {
+  background-color: color-mix(in srgb, var(--muted) 40%, var(--background));
+}
+
+.expense-ag-grid.ag-theme-quartz
+  .ag-pinned-right-cols-container
+  .ag-row-selected
+  .ag-cell {
+  background-color: color-mix(in srgb, var(--muted) 30%, var(--background));
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-pinned-right-cols-container .ag-cell {
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.14);
+  justify-content: center;
+}
+
+.expense-ag-grid.ag-theme-quartz .ag-header-cell-resize::after {
+  background-color: transparent;
+}
+
+.expense-ag-grid.ag-theme-quartz
+  .ag-header-cell-resize:hover::after,
+.expense-ag-grid.ag-theme-quartz
+  .ag-header-active
+  .ag-header-cell-resize::after {
+  background-color: var(--primary);
+}
