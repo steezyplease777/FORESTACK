@@ -109,7 +109,7 @@ export function NumberRangeFilterBody({
   return (
     <div className="space-y-2">
       <div>
-        <Label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <Label className="text-[11px] font-normal uppercase tracking-wide text-muted-foreground">
           Min
         </Label>
         <Input
@@ -125,7 +125,7 @@ export function NumberRangeFilterBody({
         />
       </div>
       <div>
-        <Label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <Label className="text-[11px] font-normal uppercase tracking-wide text-muted-foreground">
           Max
         </Label>
         <Input
@@ -190,7 +190,7 @@ export function DateRangeFilterBody({
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
       <div className="min-w-0 flex-1">
-        <p className="mb-2 px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 px-1 text-[11px] font-normal uppercase tracking-wide text-muted-foreground">
           From
         </p>
         <Calendar
@@ -212,7 +212,7 @@ export function DateRangeFilterBody({
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="mb-2 px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 px-1 text-[11px] font-normal uppercase tracking-wide text-muted-foreground">
           To
         </p>
         <Calendar

@@ -10,7 +10,7 @@ import { EXPENSE_COLUMN_DEFS } from '../config/column-defs'
 import type { ExpenseTableColumnId } from '../ExpenseAdminTable.types'
 
 const headerShellClass =
-  'flex h-full min-h-0 min-w-0 w-full items-center gap-1.5 text-xs font-medium'
+  'flex h-full min-h-0 min-w-0 w-full items-center gap-1.5 text-xs font-normal'
 
 /** Fixed slot so sort icon toggling never shifts column width. */
 function SortIconSlot({

@@ -65,7 +65,7 @@ export function ExpenseTableToolbar({
   }))
 
   return (
-    <div className="shrink-0 bg-background">
+    <div className="shrink-0 bg-background font-sans font-normal">
       <div className="flex items-center gap-2 px-3 py-2">
         <div className="relative min-w-0 flex-1">
           <Input

@@ -33,13 +33,13 @@ export function TitleCell({ row, companyId, readOnly }: TitleCellProps) {
   const titleContent =
     readOnly || !editing ? (
       readOnly ? (
-        <span className="truncate text-sm font-medium leading-tight">
+        <span className="truncate text-sm font-normal leading-tight">
           {row.title || '—'}
         </span>
       ) : (
         <button
           type="button"
-          className="truncate text-left text-sm font-medium leading-tight hover:underline"
+          className="truncate text-left text-sm font-normal leading-tight hover:underline"
           onClick={() => setEditing(true)}
         >
           {row.title || 'Untitled'}

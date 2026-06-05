@@ -233,7 +233,7 @@ export function ExpensesPage() {
       ) : (
         <div
           className={cn(
-            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden bg-background',
+            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden bg-background font-sans font-normal',
             isPaging ? 'opacity-60 transition-opacity' : undefined,
           )}
         >
@@ -315,7 +315,7 @@ export function ExpensesPage() {
             ) : null}
           </div>
 
-          <footer className="expense-table-footer mt-auto flex shrink-0 items-center justify-between gap-4 bg-muted/30 px-3.5 py-1.5 text-xs text-muted-foreground">
+          <footer className="expense-table-footer mt-auto flex shrink-0 items-center justify-between gap-4 bg-muted/30 px-3.5 py-1.5 font-sans text-xs font-normal text-muted-foreground">
             <span className="tabular-nums">
               {bulkEnabled && bulk.selectedCount > 0
                 ? `${bulk.selectedCount.toLocaleString()} of ${total.toLocaleString()} rows selected`
@@ -323,7 +323,8 @@ export function ExpensesPage() {
             </span>
             <div className="flex items-center gap-4">
               <span className="tabular-nums">
-                Page <strong>{page}</strong> of <strong>{pageCount}</strong>
+                Page <span className="font-normal">{page}</span> of{' '}
+                <span className="font-normal">{pageCount}</span>
               </span>
               <div className="flex items-center gap-0.5">
                 <Button

@@ -60,7 +60,7 @@ function ExpenseStatusBadge({
     <span
       className={cn(
         'inline-flex max-w-full items-center gap-1 truncate rounded px-2 py-1',
-        'text-[11px] font-semibold leading-tight',
+        'text-[11px] font-normal leading-tight',
         !style && 'bg-muted text-muted-foreground',
       )}
       style={style}

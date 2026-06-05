@@ -45,7 +45,7 @@ type BulkActionsToolbarProps = {
 }
 
 const toolbarButtonClass =
-  'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55'
+  'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-normal transition-colors disabled:cursor-not-allowed disabled:opacity-55'
 
 function buttonVariantClass(style?: ExpenseBulkActionConfig['style']) {
   if (style === 'primary') {
@@ -301,7 +301,7 @@ export function BulkActionsToolbar({
           ref={stableRef}
           className="flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap"
         >
-          <span className="text-xs font-semibold tabular-nums">
+          <span className="text-xs font-normal tabular-nums">
             {selectedCount} selected
           </span>
 
@@ -309,7 +309,7 @@ export function BulkActionsToolbar({
             type="button"
             onClick={onClear}
             disabled={disabled}
-            className="rounded-md px-2.5 py-1 text-xs font-medium text-background/85 transition-colors hover:bg-background/10 disabled:opacity-55"
+            className="rounded-md px-2.5 py-1 text-xs font-normal text-background/85 transition-colors hover:bg-background/10 disabled:opacity-55"
           >
             Clear
           </button>

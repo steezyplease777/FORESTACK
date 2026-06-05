@@ -55,7 +55,7 @@ function FilterSection({
 }) {
   return (
     <section className="space-y-2">
-      <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+      <div className="flex items-center gap-2 text-xs font-normal text-foreground">
         <Icon className="size-3.5 opacity-70" />
         {title}
       </div>
@@ -112,7 +112,7 @@ export function ExpenseStructuredFilters({
           <IconFilter className="size-3.5" />
           Filter
           {structuredCount > 0 ? (
-            <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-indigo-50 px-1 text-[10px] font-semibold text-indigo-800">
+            <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-indigo-50 px-1 text-[10px] font-normal text-indigo-800">
               {structuredCount}
             </span>
           ) : null}

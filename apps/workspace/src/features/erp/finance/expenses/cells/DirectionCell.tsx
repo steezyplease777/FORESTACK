@@ -46,7 +46,7 @@ export function DirectionCell({ direction }: DirectionCellProps) {
     <span
       className={cn(
         'inline-flex max-w-full items-center gap-1 truncate rounded-md px-2 py-0.5',
-        'text-xs font-medium whitespace-nowrap',
+        'text-xs font-normal whitespace-nowrap',
       )}
       style={{ background: style.bg, color: style.color }}
     >

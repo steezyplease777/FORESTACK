@@ -56,7 +56,7 @@ function TagsHoverPanel({ tags }: { tags: TagEntry[] }) {
         <Table className="min-w-max">
           <TableHeader>
             <TableRow className="border-b hover:bg-transparent">
-              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-bold uppercase tracking-wide">
+              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-normal uppercase tracking-wide">
                 Tags
               </TableHead>
             </TableRow>
@@ -243,10 +243,10 @@ export function TagsCell({ row, companyId, readOnly }: TagsCellProps) {
                 className="z-[200] w-auto border p-2 shadow-md"
                 onPointerDown={(e) => e.stopPropagation()}
               >
-                <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-[10px] font-normal uppercase tracking-wide text-muted-foreground">
                   Tag
                 </p>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-normal text-foreground">
                   {tag.label || tag.id}
                 </p>
               </HoverCardContent>

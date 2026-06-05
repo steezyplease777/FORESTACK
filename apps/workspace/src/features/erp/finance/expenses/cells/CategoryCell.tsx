@@ -86,7 +86,7 @@ export function CategoryCell({ row, companyId, readOnly }: CategoryCellProps) {
           disabled={update.isPending}
           title={displayLabel || 'Select category'}
           className={cn(
-            'flex min-h-6 w-full min-w-0 items-center justify-between gap-1 rounded px-1 text-left text-sm font-medium',
+            'flex min-h-6 w-full min-w-0 items-center justify-between gap-1 rounded px-1 text-left text-sm font-normal',
             'text-foreground transition-colors hover:bg-muted/50',
           )}
           {...triggerProps}

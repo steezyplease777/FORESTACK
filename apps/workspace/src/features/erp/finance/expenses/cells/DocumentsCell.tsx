@@ -130,7 +130,7 @@ export function DocumentsCell({
         />
 
         {isDragging ? (
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-normal text-emerald-800">
             <IconUpload className="size-3" />
             Drop to attach
           </span>
@@ -154,7 +154,7 @@ export function DocumentsCell({
         ) : (
           <>
             <span
-              className="inline-flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground"
+              className="inline-flex items-center gap-0.5 text-[10px] font-normal text-muted-foreground"
               title={`${documents.length} document${documents.length === 1 ? '' : 's'}`}
             >
               <IconPaperclip className="size-3" />

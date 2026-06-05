@@ -56,7 +56,7 @@ import type {
 export const EXPENSE_ROW_HEIGHT = 48
 
 const thClass =
-  'sticky top-0 z-10 border-b border-r border-border/70 bg-card px-2 py-2 text-xs font-medium text-foreground'
+  'sticky top-0 z-10 border-b border-r border-border/70 bg-card px-2 py-2 text-xs font-normal text-foreground'
 const tdClass =
   'h-12 overflow-hidden border-r border-border/70 bg-card px-2 align-middle'
 /** HoverCard triggers must not be clipped by the cell. */
@@ -189,7 +189,7 @@ export function ExpenseAdminTable({
   )
 
   return (
-    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
+    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col font-sans">
       <div
         ref={scrollRef}
         className="scrollbar-auto-hide min-h-0 min-w-0 flex-1 overflow-auto"
@@ -197,7 +197,7 @@ export function ExpenseAdminTable({
       >
         <table
           className={cn(
-            'expense-grid-table w-full border-separate border-spacing-0 text-sm',
+            'expense-grid-table w-full border-separate border-spacing-0 font-sans text-sm font-normal',
             resizingColumn && 'cursor-col-resize select-none',
           )}
           style={{

@@ -35,7 +35,7 @@ export function AmountCell({ row, companyId, readOnly }: AmountCellProps) {
   }
 
   const displayClass = cn(
-    'block text-right font-medium tabular-nums',
+    'block text-right font-normal tabular-nums',
     readOnly && 'w-full',
   )
 

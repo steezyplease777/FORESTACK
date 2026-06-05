@@ -105,7 +105,7 @@
   background-color: var(--card) !important;
 }
 
-/* ── Header — white flush with card, text-xs font-medium ── */
+/* ── Header — white flush with card, text-xs font-normal ── */
 .ag-theme-expense-shadcn .ag-header,
 .ag-theme-expense-shadcn .ag-header-viewport,
 .ag-theme-expense-shadcn .ag-header-container,
@@ -124,7 +124,7 @@
   box-sizing: border-box !important;
   background-color: var(--card) !important;
   font-size: 0.75rem !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
   color: var(--foreground) !important;
   padding-inline: 8px !important;
   border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent) !important;

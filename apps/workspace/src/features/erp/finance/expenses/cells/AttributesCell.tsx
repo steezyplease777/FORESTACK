@@ -187,10 +187,10 @@ function CreditCardAttributeHoverContent({
 
   return (
     <div className="min-w-[160px] space-y-0.5 text-left">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+      <p className="text-[10px] font-normal uppercase tracking-wide text-muted-foreground">
         Credit card
       </p>
-      <p className="text-sm font-medium leading-snug text-foreground">{summary}</p>
+      <p className="text-sm font-normal leading-snug text-foreground">{summary}</p>
       <p className="font-mono text-xs tracking-wide text-foreground">{masked}</p>
     </div>
   )
@@ -209,10 +209,10 @@ function UncategorizedAttributesHoverContent({
         <Table className="min-w-max">
           <TableHeader>
             <TableRow className="border-b hover:bg-transparent">
-              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-bold uppercase tracking-wide">
+              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-normal uppercase tracking-wide">
                 Field
               </TableHead>
-              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-bold uppercase tracking-wide">
+              <TableHead className="h-7 whitespace-nowrap px-2.5 py-0 text-[11px] font-normal uppercase tracking-wide">
                 Value
               </TableHead>
             </TableRow>
@@ -223,7 +223,7 @@ function UncategorizedAttributesHoverContent({
                 key={row.key}
                 className="border-b border-border/40 last:border-0 hover:bg-transparent"
               >
-                <TableCell className="whitespace-nowrap px-2.5 py-1 text-[11px] font-medium text-foreground">
+                <TableCell className="whitespace-nowrap px-2.5 py-1 text-[11px] font-normal text-foreground">
                   {row.label}
                 </TableCell>
                 <TableCell className="whitespace-nowrap px-2.5 py-1 text-[11px] text-muted-foreground">
@@ -292,7 +292,7 @@ export function AttributesCell({
 
       {overflow > 0 ? (
         <span
-          className="text-[11px] font-medium text-foreground"
+          className="text-[11px] font-normal text-foreground"
           title={`${overflow} more card${overflow === 1 ? '' : 's'}`}
         >
           +{overflow}
