@@ -128,32 +128,43 @@ const collectUncategorizedAttributes = (
   return rows
 }
 
-function AttributeIconTile({
-  icon,
-  ariaLabel,
-  className,
-}: {
-  icon: React.ReactNode
-  ariaLabel: string
-  className?: string
-}) {
+/** Must forwardRef — `HoverCardTrigger asChild` merges refs/events onto the child. */
+const AttributeIconTile = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<'button'> & {
+    icon: React.ReactNode
+    ariaLabel: string
+    className?: string
+  }
+>(function AttributeIconTile(
+  { icon, ariaLabel, className, onPointerDown, onClick, ...props },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       type="button"
       aria-label={ariaLabel}
-      onPointerDown={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => {
+        e.stopPropagation()
+        onPointerDown?.(e)
+      }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick?.(e)
+      }}
       className={[
         'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded border border-border bg-muted/40 text-muted-foreground',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
+      {...props}
     >
       {icon}
     </button>
   )
-}
+})
 
 function CreditCardAttributeHoverContent({
   catalogEntry,
@@ -266,6 +277,7 @@ export function AttributesCell({
               side="top"
               align="start"
               sideOffset={4}
+              collisionPadding={8}
               className="z-[200] w-auto border p-2 shadow-md"
               onPointerDown={(e) => e.stopPropagation()}
             >
@@ -299,6 +311,7 @@ export function AttributesCell({
             side="top"
             align="start"
             sideOffset={4}
+            collisionPadding={8}
             className="z-[200] w-auto border p-2 shadow-md"
             onPointerDown={(e) => e.stopPropagation()}
           >

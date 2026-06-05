@@ -57,6 +57,11 @@ const thClass =
   'sticky top-0 z-10 border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground'
 const tdClass =
   'h-12 overflow-hidden border-b border-r border-border/70 bg-background px-2 align-middle'
+/** HoverCard triggers must not be clipped by the cell. */
+const HOVER_CARD_COLUMN_IDS = new Set<ExpenseTableColumnId>([
+  'attributes',
+  'invoiceTags',
+])
 const checkboxThClass =
   'sticky top-0 z-10 w-10 border-b border-r-0 border-border/70 bg-background px-2 py-2 text-center'
 const checkboxTdClass =
@@ -447,6 +452,7 @@ function ExpenseTableRow({
               tdClass,
               'group-hover:bg-muted/40',
               bulkEnabled && selected && 'bg-muted/30',
+              HOVER_CARD_COLUMN_IDS.has(columnId) && 'overflow-visible',
               alignRight && 'text-right',
             )}
             style={{
