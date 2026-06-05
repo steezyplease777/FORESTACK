@@ -33,10 +33,10 @@ export const handleWorkOSCallbackFn = createServerFn({ method: 'POST' })
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${env.apiKey}`,
       },
       body: JSON.stringify({
         client_id: env.clientId,
+        client_secret: env.apiKey,
         grant_type: 'authorization_code',
         code: data.code,
         redirect_uri: data.redirectUri,
