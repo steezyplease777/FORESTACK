@@ -5,6 +5,7 @@ import {
   AllCommunityModule,
   ModuleRegistry,
   type GridApi,
+  type FirstDataRenderedEvent,
   type GridReadyEvent,
   type SelectionChangedEvent,
   type SortChangedEvent,
@@ -12,10 +13,15 @@ import {
 import { AgGridReact } from 'ag-grid-react'
 
 import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-quartz.css'
 import './expense-ag-grid-theme.css'
 
 import { DocumentUploadDialog } from '../documents/DocumentUploadDialog'
+import {
+  EXPENSE_ACTIONS_COLUMN_WIDTH,
+  EXPENSE_CHECKBOX_COLUMN_WIDTH,
+  EXPENSE_COLUMN_DEFS,
+  expenseTableMinWidth,
+} from '../config/column-defs'
 import {
   sortColumnForTableColumn,
   type ExpenseSortColumn,
@@ -77,6 +83,11 @@ export function ExpenseAgGrid({
   const columnDefs = React.useMemo(
     () => buildExpenseColumnDefs({ config, bulkEnabled, readOnly }),
     [config, bulkEnabled, readOnly],
+  )
+
+  const tableMinWidth = React.useMemo(
+    () => expenseTableMinWidth(config.columns, undefined, { bulkEnabled }),
+    [config.columns, bulkEnabled],
   )
 
   const uploadEnabled =
@@ -144,13 +155,52 @@ export function ExpenseAgGrid({
     syncingSelectionRef.current = false
   }, [bulkEnabled, selectedIds])
 
+  const applyColumnWidths = React.useCallback((api: GridApi<ExpenseRow>) => {
+    api.applyColumnState({
+      state: config.columns.map((columnId) => ({
+        colId: columnId,
+        width: EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100,
+        flex: null,
+      })),
+      applyOrder: false,
+    })
+    if (bulkEnabled) {
+      api.applyColumnState({
+        state: [
+          {
+            colId: '__select__',
+            width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+            flex: null,
+          },
+        ],
+      })
+    }
+    api.applyColumnState({
+      state: [
+        {
+          colId: '__actions__',
+          width: EXPENSE_ACTIONS_COLUMN_WIDTH,
+          flex: null,
+        },
+      ],
+    })
+  }, [bulkEnabled, config.columns])
+
   const handleGridReady = React.useCallback(
     (event: GridReadyEvent<ExpenseRow>) => {
       apiRef.current = event.api
+      applyColumnWidths(event.api)
       applySortState()
       applySelectionState()
     },
-    [applySortState, applySelectionState],
+    [applyColumnWidths, applySortState, applySelectionState],
+  )
+
+  const handleFirstDataRendered = React.useCallback(
+    (event: FirstDataRenderedEvent<ExpenseRow>) => {
+      applyColumnWidths(event.api)
+    },
+    [applyColumnWidths],
   )
 
   React.useEffect(() => {
@@ -201,25 +251,34 @@ export function ExpenseAgGrid({
     [bulkEnabled, rows, setSelectedIds],
   )
 
+  const getRowClass = React.useCallback(
+    (params: { node: { isSelected: () => boolean } }) =>
+      bulkEnabled && params.node.isSelected() ? 'expense-ag-row-selected' : undefined,
+    [bulkEnabled],
+  )
+
   return (
     <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
-      <div className="min-h-0 min-w-0 flex-1">
+      <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         <div
-          className="expense-ag-grid ag-theme-quartz h-full w-full"
-          style={{ height: '100%' }}
+          className="expense-ag-grid ag-theme-expense-shadcn h-full w-full text-sm"
+          style={{ height: '100%', minWidth: tableMinWidth }}
         >
           <AgGridReact<ExpenseRow>
             ref={gridRef}
+            theme="legacy"
             rowData={rows}
             columnDefs={columnDefs}
             context={gridContext}
             getRowId={(params) => params.data.id}
             rowHeight={EXPENSE_ROW_HEIGHT}
-            headerHeight={40}
+            headerHeight={EXPENSE_ROW_HEIGHT}
             domLayout="normal"
             suppressCellFocus
+            suppressRowHoverHighlight={false}
             animateRows={false}
             enableCellTextSelection
+            getRowClass={getRowClass}
             popupParent={
               typeof document !== 'undefined' ? document.body : undefined
             }
@@ -234,6 +293,7 @@ export function ExpenseAgGrid({
                 : undefined
             }
             onGridReady={handleGridReady}
+            onFirstDataRendered={handleFirstDataRendered}
             onSortChanged={handleSortChanged}
             onSelectionChanged={handleSelectionChanged}
           />

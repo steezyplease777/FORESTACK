@@ -49,6 +49,8 @@ export function buildExpenseColumnDefs({
       headerCheckboxSelection: true,
       headerCheckboxSelectionFilteredOnly: false,
       suppressHeaderMenuButton: true,
+      headerClass: 'expense-ag-checkbox-header',
+      cellClass: 'expense-ag-checkbox-cell',
     })
   }
 
@@ -90,6 +92,8 @@ export function buildExpenseColumnDefs({
     resizable: false,
     cellRenderer: ActionsCellRenderer,
     suppressHeaderMenuButton: true,
+    headerClass: 'expense-ag-actions-header',
+    cellClass: 'expense-ag-actions-cell',
   })
 
   return defs

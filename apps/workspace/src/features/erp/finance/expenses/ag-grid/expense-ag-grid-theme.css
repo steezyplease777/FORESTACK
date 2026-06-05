@@ -1,97 +1,263 @@
 /**
- * AG Grid quartz theme overrides — maps AG Grid CSS variables to shadcn tokens
- * so the expense spreadsheet matches the existing Forestack table chrome.
+ * Expense spreadsheet — shadcn chrome on AG Grid (legacy CSS theming).
+ * Mirrors ExpenseAdminTable.legacy.tsx: border-separate grid, sticky pins, muted hover.
  */
-.expense-ag-grid.ag-theme-quartz {
+.ag-theme-expense-shadcn {
+  /* Core palette — shadcn tokens */
   --ag-background-color: var(--background);
+  --ag-data-background-color: var(--background);
   --ag-foreground-color: var(--foreground);
   --ag-secondary-foreground-color: var(--muted-foreground);
   --ag-header-background-color: var(--background);
   --ag-header-foreground-color: var(--foreground);
+  --ag-disabled-foreground-color: color-mix(
+    in srgb,
+    var(--foreground) 50%,
+    transparent
+  );
+
+  /* Spreadsheet grid lines (border-r + border-b at 70% border) */
+  --ag-border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-secondary-border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-row-border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-cell-horizontal-border: solid color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-header-column-separator-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-height: 100%;
+  --ag-header-column-separator-width: 1px;
+
+  /* No zebra — flat background like legacy table */
   --ag-odd-row-background-color: var(--background);
+
+  /* Hover / selection — matches legacy group-hover:bg-muted/40 and bg-muted/30 */
   --ag-row-hover-color: color-mix(in srgb, var(--muted) 40%, var(--background));
   --ag-selected-row-background-color: color-mix(
     in srgb,
     var(--muted) 30%,
     var(--background)
   );
-  --ag-border-color: color-mix(in srgb, var(--border) 70%, transparent);
-  --ag-row-border-color: color-mix(in srgb, var(--border) 70%, transparent);
-  --ag-header-column-separator-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-column-hover-color: transparent;
+  --ag-header-cell-hover-background-color: transparent;
+
+  /* Typography — inherit app font, text-sm body / text-xs headers */
   --ag-font-family: inherit;
   --ag-font-size: 0.875rem;
   --ag-grid-size: 6px;
   --ag-cell-horizontal-padding: 8px;
-  --ag-header-height: 40px;
+
+  /* Row + header height — legacy h-12 / 48px */
+  --ag-header-height: 48px;
   --ag-row-height: 48px;
+
+  /* Checkbox — shadcn Checkbox (size-4, primary when checked) */
+  --ag-active-color: var(--primary);
   --ag-checkbox-checked-color: var(--primary);
   --ag-checkbox-unchecked-color: var(--border);
   --ag-checkbox-indeterminate-color: var(--primary);
-  --ag-active-color: var(--primary);
+  --ag-checkbox-background-color: var(--background);
+  --ag-checkbox-border-radius: 4px;
   --ag-input-focus-border-color: var(--ring);
-  --ag-range-selection-border-color: var(--primary);
+
+  /* Remove quartz/alpine chrome */
+  --ag-wrapper-border-radius: 0;
+  --ag-border-radius: 0;
+  --ag-card-shadow: none;
+  --ag-popup-shadow: none;
+
+  /* Sort + resize affordances */
+  --ag-icon-size: 12px;
   --ag-icon-font-color: var(--muted-foreground);
+  --ag-header-column-resize-handle-display: block;
+  --ag-header-column-resize-handle-width: 2px;
+  --ag-header-column-resize-handle-height: 100%;
+  --ag-header-column-resize-handle-color: transparent;
+
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
-.expense-ag-grid.ag-theme-quartz .ag-root-wrapper {
+/* Strip AG Grid wrapper chrome — card border comes from expenses-page */
+.ag-theme-expense-shadcn .ag-root-wrapper {
   border: none;
   border-radius: 0;
-}
-
-.expense-ag-grid.ag-theme-quartz .ag-header-cell {
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.expense-ag-grid.ag-theme-quartz .ag-cell {
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-
-.expense-ag-grid.ag-theme-quartz .ag-cell.expense-ag-cell-overflow-visible {
-  overflow: visible;
-}
-
-.expense-ag-grid.ag-theme-quartz .ag-pinned-right-header,
-.expense-ag-grid.ag-theme-quartz .ag-cell.ag-cell-last-left-pinned,
-.expense-ag-grid.ag-theme-quartz .ag-pinned-right-cols-container .ag-cell {
   background-color: var(--background);
 }
 
-.expense-ag-grid.ag-theme-quartz .ag-pinned-right-header {
+.ag-theme-expense-shadcn .ag-root-wrapper-body {
+  background-color: var(--background);
+}
+
+/* Header — text-xs font-medium like legacy thClass */
+.ag-theme-expense-shadcn .ag-header {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background-color: var(--background);
+}
+
+.ag-theme-expense-shadcn .ag-header-cell {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--foreground);
+  padding-inline: 8px;
+}
+
+.ag-theme-expense-shadcn .ag-header-cell-label {
+  gap: 6px;
+}
+
+/* Sort icons — subtle chevrons like legacy SortableHeader */
+.ag-theme-expense-shadcn .ag-sort-indicator-container {
+  gap: 0;
+}
+
+.ag-theme-expense-shadcn .ag-sort-indicator-icon {
+  opacity: 0.3;
+}
+
+.ag-theme-expense-shadcn .ag-header-cell-sorted-asc .ag-sort-indicator-icon,
+.ag-theme-expense-shadcn .ag-header-cell-sorted-desc .ag-sort-indicator-icon {
+  opacity: 1;
+}
+
+.ag-theme-expense-shadcn .ag-icon-asc::before,
+.ag-theme-expense-shadcn .ag-icon-desc::before {
+  font-size: 12px;
+}
+
+/* Body cells — vertical center, truncate like legacy tdClass */
+.ag-theme-expense-shadcn .ag-cell {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background-color: var(--background);
+  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.ag-theme-expense-shadcn .ag-cell.expense-ag-cell-overflow-visible {
+  overflow: visible;
+}
+
+/* Checkbox column — 40px, no right border (legacy checkboxTh/td) */
+.ag-theme-expense-shadcn .expense-ag-checkbox-header,
+.ag-theme-expense-shadcn .expense-ag-checkbox-cell {
+  justify-content: center;
+  padding-inline: 8px;
+  border-right: none !important;
+}
+
+.ag-theme-expense-shadcn .expense-ag-checkbox-cell .ag-selection-checkbox,
+.ag-theme-expense-shadcn .expense-ag-checkbox-header .ag-checkbox-input-wrapper {
+  margin: 0;
+}
+
+.ag-theme-expense-shadcn .ag-checkbox-input-wrapper {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.ag-theme-expense-shadcn .ag-checkbox-input-wrapper.ag-checked,
+.ag-theme-expense-shadcn .ag-checkbox-input-wrapper.ag-indeterminate {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.ag-theme-expense-shadcn .ag-checkbox-input-wrapper::after {
+  width: 10px;
+  height: 10px;
+}
+
+/* Pinned right actions — solid bg + left edge shadow (legacy actionsTh/td) */
+.ag-theme-expense-shadcn .ag-pinned-right-header,
+.ag-theme-expense-shadcn .ag-pinned-right-cols-container .ag-cell {
+  background-color: var(--background);
   border-left: 1px solid var(--border);
+  border-right: none;
   box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.14);
 }
 
-.expense-ag-grid.ag-theme-quartz
+.ag-theme-expense-shadcn .expense-ag-actions-header,
+.ag-theme-expense-shadcn .expense-ag-actions-cell {
+  justify-content: center;
+  padding-inline: 8px;
+}
+
+.ag-theme-expense-shadcn
   .ag-pinned-right-cols-container
   .ag-row-hover
   .ag-cell {
   background-color: color-mix(in srgb, var(--muted) 40%, var(--background));
 }
 
-.expense-ag-grid.ag-theme-quartz
+.ag-theme-expense-shadcn
   .ag-pinned-right-cols-container
   .ag-row-selected
   .ag-cell {
   background-color: color-mix(in srgb, var(--muted) 30%, var(--background));
 }
 
-.expense-ag-grid.ag-theme-quartz .ag-pinned-right-cols-container .ag-cell {
-  border-left: 1px solid var(--border);
-  box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.14);
-  justify-content: center;
+/* Pinned left (checkbox) — opaque bg on hover/selection */
+.ag-theme-expense-shadcn
+  .ag-pinned-left-cols-container
+  .ag-row-hover
+  .expense-ag-checkbox-cell {
+  background-color: color-mix(in srgb, var(--muted) 40%, var(--background));
 }
 
-.expense-ag-grid.ag-theme-quartz .ag-header-cell-resize::after {
+.ag-theme-expense-shadcn
+  .ag-pinned-left-cols-container
+  .ag-row-selected
+  .expense-ag-checkbox-cell {
+  background-color: color-mix(in srgb, var(--muted) 30%, var(--background));
+}
+
+/* Column resize handle — primary on hover like legacy ColumnResizeHandle */
+.ag-theme-expense-shadcn .ag-header-cell-resize::after {
+  width: 1px;
   background-color: transparent;
+  transition: background-color 0.15s ease;
 }
 
-.expense-ag-grid.ag-theme-quartz
-  .ag-header-cell-resize:hover::after,
-.expense-ag-grid.ag-theme-quartz
-  .ag-header-active
-  .ag-header-cell-resize::after {
+.ag-theme-expense-shadcn .ag-header-cell-resize:hover::after,
+.ag-theme-expense-shadcn .ag-header-active .ag-header-cell-resize::after {
   background-color: var(--primary);
+}
+
+/* Row hover on unpinned cells */
+.ag-theme-expense-shadcn .ag-center-cols-container .ag-row-hover .ag-cell {
+  background-color: color-mix(in srgb, var(--muted) 40%, var(--background));
+}
+
+.ag-theme-expense-shadcn .ag-center-cols-container .ag-row-selected .ag-cell {
+  background-color: color-mix(in srgb, var(--muted) 30%, var(--background));
+}
+
+/* Subtle scrollbars */
+.ag-theme-expense-shadcn .ag-body-horizontal-scroll-viewport,
+.ag-theme-expense-shadcn .ag-body-vertical-scroll-viewport {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--border) 80%, transparent) transparent;
+}
+
+.ag-theme-expense-shadcn .ag-body-horizontal-scroll-viewport::-webkit-scrollbar,
+.ag-theme-expense-shadcn .ag-body-vertical-scroll-viewport::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.ag-theme-expense-shadcn
+  .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb,
+.ag-theme-expense-shadcn
+  .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 9999px;
+}
+
+/* Hide header menu buttons — not used in expense table */
+.ag-theme-expense-shadcn .ag-header-cell-menu-button,
+.ag-theme-expense-shadcn .ag-header-cell-filter-button {
+  display: none;
 }
