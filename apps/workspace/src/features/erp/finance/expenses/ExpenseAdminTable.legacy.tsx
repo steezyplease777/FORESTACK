@@ -68,10 +68,10 @@ const checkboxThClass =
   'sticky top-0 z-10 w-10 border-b border-r-0 border-border/70 bg-card px-2 py-2 text-center'
 const checkboxTdClass =
   'h-12 w-10 border-r-0 border-border/70 bg-card px-2 text-center align-middle'
-/** Opaque hover/selection fills for sticky cells — alpha blends show scroll bleed-through. */
-const stickyRowHoverBg =
+/** Opaque hover/selection fills — mix from --card so cream panel never bleeds through. */
+const rowHoverBg =
   'group-hover:bg-[color-mix(in_srgb,var(--muted)_40%,var(--card))]'
-const stickyRowSelectedBg =
+const rowSelectedBg =
   'bg-[color-mix(in_srgb,var(--muted)_30%,var(--card))]'
 /** Sticky right actions column — solid bg + left edge so scrolled cells don't bleed through. */
 const actionsThClass = cn(
@@ -81,7 +81,7 @@ const actionsThClass = cn(
 const actionsTdClass = cn(
   tdClass,
   'sticky right-0 z-20 border-l border-r-0 border-border text-center',
-  stickyRowHoverBg,
+  rowHoverBg,
 )
 
 export function ExpenseAdminTable({
@@ -425,19 +425,13 @@ function ExpenseTableRow({
   style?: React.CSSProperties
 }) {
   return (
-    <tr
-      className={cn(
-        'group transition-colors',
-        bulkEnabled && selected && 'bg-muted/30',
-      )}
-      style={style}
-    >
+    <tr className="group transition-colors" style={style}>
       {bulkEnabled ? (
         <td
           className={cn(
             checkboxTdClass,
-            'group-hover:bg-muted/40',
-            selected && 'bg-muted/30',
+            rowHoverBg,
+            selected && rowSelectedBg,
           )}
           style={{
             width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
@@ -460,8 +454,8 @@ function ExpenseTableRow({
             key={columnId}
             className={cn(
               tdClass,
-              'group-hover:bg-muted/40',
-              bulkEnabled && selected && 'bg-muted/30',
+              rowHoverBg,
+              bulkEnabled && selected && rowSelectedBg,
               HOVER_CARD_COLUMN_IDS.has(columnId) && 'overflow-visible',
               alignRight && 'text-right',
             )}
@@ -488,7 +482,7 @@ function ExpenseTableRow({
       <td
         className={cn(
           actionsTdClass,
-          bulkEnabled && selected && stickyRowSelectedBg,
+          bulkEnabled && selected && rowSelectedBg,
         )}
         style={{
           width: EXPENSE_ACTIONS_COLUMN_WIDTH,
