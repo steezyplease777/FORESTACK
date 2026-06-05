@@ -1,4 +1,5 @@
 import { isWorkOsAuthEnabled } from '@/lib/auth/workos/config'
+import { createServiceRoleClient } from '@/lib/datasource/supabase/admin.server'
 import { createTenantClient } from '@/lib/datasource/supabase/tenant-client.server'
 import { createClient } from '@/lib/datasource/supabase/server'
 import type {
@@ -13,6 +14,78 @@ function isMissingExternalColumnError(message: string, code?: string): boolean {
     message.includes('external_subject_id') ||
     message.includes('external_issuer')
   )
+}
+
+type OrgUserRow = {
+  id: string
+  email: string
+  first_name: string | null
+  last_name: string | null
+  profile_picture_url: string | null
+}
+
+function companyAccessFromRow(
+  data: { id: string; company_id: string },
+  orgUser: OrgUserRow | null,
+  companyId: string,
+  organizationId: string,
+  userEmail: string,
+) {
+  return {
+    companyMembership: {
+      companyId,
+      organizationId,
+      userEmail,
+      organizationUserId: orgUser?.id ?? null,
+      companyUserId: data.id ?? null,
+    },
+    companyUser: orgUser
+      ? {
+          companyUserId: data.id,
+          organizationUserId: orgUser.id,
+          email: orgUser.email,
+          firstName: orgUser.first_name,
+          lastName: orgUser.last_name,
+          profilePictureUrl: orgUser.profile_picture_url,
+        }
+      : undefined,
+  }
+}
+
+function parseOrgUser(
+  rel: OrgUserRow | Array<OrgUserRow> | null,
+): OrgUserRow | null {
+  return Array.isArray(rel) ? (rel[0] ?? null) : rel
+}
+
+async function requireCompanyAccessByEmailServiceRole(
+  companyId: string,
+  userEmail: string,
+  organizationId: string,
+): Promise<{
+  companyMembership?: TenantContext
+  companyUser?: CompanyUserProfile
+} | null> {
+  let admin: ReturnType<typeof createServiceRoleClient>
+  try {
+    admin = createServiceRoleClient()
+  } catch {
+    return null
+  }
+
+  const { data, error } = await admin
+    .from('app_company_users')
+    .select(
+      `id, company_id, org_user_id!inner (id, email, first_name, last_name, profile_picture_url)`,
+    )
+    .eq('company_id', companyId)
+    .ilike('org_user_id.email', userEmail)
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  const orgUser = parseOrgUser(data.org_user_id as OrgUserRow | Array<OrgUserRow> | null)
+  return companyAccessFromRow(data, orgUser, companyId, organizationId, userEmail)
 }
 
 async function requireCompanyAccessByExternalIdentity(
@@ -44,36 +117,16 @@ async function requireCompanyAccessByExternalIdentity(
 
   if (!data) return null
 
-  type OrgUserRow = {
-    id: string
-    email: string
-    first_name: string | null
-    last_name: string | null
-    profile_picture_url: string | null
-  }
-  const rel = data.org_user_id as OrgUserRow | Array<OrgUserRow> | null
-  const orgUser = Array.isArray(rel) ? (rel[0] ?? null) : rel
-  const userEmail = orgUser?.email ?? ''
+  const orgUser = parseOrgUser(data.org_user_id as OrgUserRow | Array<OrgUserRow> | null)
+  const resolvedEmail = orgUser?.email ?? ''
 
-  return {
-    companyMembership: {
-      companyId,
-      organizationId,
-      userEmail,
-      organizationUserId: orgUser?.id ?? null,
-      companyUserId: data.id ?? null,
-    },
-    companyUser: orgUser
-      ? {
-          companyUserId: data.id,
-          organizationUserId: orgUser.id,
-          email: orgUser.email,
-          firstName: orgUser.first_name,
-          lastName: orgUser.last_name,
-          profilePictureUrl: orgUser.profile_picture_url,
-        }
-      : undefined,
-  }
+  return companyAccessFromRow(
+    data,
+    orgUser,
+    companyId,
+    organizationId,
+    resolvedEmail,
+  )
 }
 
 export async function requireCompanyAccess(
@@ -92,10 +145,14 @@ export async function requireCompanyAccess(
       externalIdentity,
       organizationId,
     )
-    if (byExternal) return byExternal
+    if (byExternal?.companyUser) return byExternal
+    if (byExternal?.error) {
+      console.warn('[requireCompanyAccess] external identity lookup:', byExternal.error)
+    }
   }
 
-  if (!userEmail) return { error: 'No user email' }
+  const normalizedEmail = userEmail?.trim().toLowerCase() ?? null
+  if (!normalizedEmail) return { error: 'No user email' }
 
   const supabase = createTenantClient()
   const { data, error } = await supabase
@@ -104,41 +161,36 @@ export async function requireCompanyAccess(
       `id, company_id, org_user_id!inner (id, email, first_name, last_name, profile_picture_url)`,
     )
     .eq('company_id', companyId)
-    .eq('org_user_id.email', userEmail)
+    .eq('org_user_id.email', normalizedEmail)
     .maybeSingle()
 
-  if (error) return { error: error.message }
-  if (!data) return { error: 'No company membership found' }
-
-  type OrgUserRow = {
-    id: string
-    email: string
-    first_name: string | null
-    last_name: string | null
-    profile_picture_url: string | null
+  if (error) {
+    console.warn('[requireCompanyAccess] tenant email lookup:', error.message)
   }
-  const rel = data.org_user_id as OrgUserRow | Array<OrgUserRow> | null
-  const orgUser = Array.isArray(rel) ? (rel[0] ?? null) : rel
 
-  return {
-    companyMembership: {
+  if (data) {
+    const orgUser = parseOrgUser(data.org_user_id as OrgUserRow | Array<OrgUserRow> | null)
+    return companyAccessFromRow(
+      data,
+      orgUser,
       companyId,
       organizationId,
-      userEmail,
-      organizationUserId: orgUser?.id ?? null,
-      companyUserId: data.id ?? null,
-    },
-    companyUser: orgUser
-      ? {
-          companyUserId: data.id,
-          organizationUserId: orgUser.id,
-          email: orgUser.email,
-          firstName: orgUser.first_name,
-          lastName: orgUser.last_name,
-          profilePictureUrl: orgUser.profile_picture_url,
-        }
-      : undefined,
+      normalizedEmail,
+    )
   }
+
+  // WorkOS Third-Party Auth: RLS uses auth.jwt()->>'email'; when the JWT
+  // template omits email, fall back to a server-only service-role read.
+  if (externalIdentity) {
+    const byEmailAdmin = await requireCompanyAccessByEmailServiceRole(
+      companyId,
+      normalizedEmail,
+      organizationId,
+    )
+    if (byEmailAdmin?.companyUser) return byEmailAdmin
+  }
+
+  return { error: 'No company membership found' }
 }
 
 export async function listOrganizationsForUser(email: string) {

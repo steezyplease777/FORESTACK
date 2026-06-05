@@ -1,7 +1,10 @@
 import type { User } from '@supabase/supabase-js'
 
 import { decodeWorkOsJwtClaims } from '@/lib/auth/workos/jwt-claims'
-import { getWorkOsAccessTokenFromCookies } from '@/lib/auth/workos/session-cookie.server'
+import {
+  getWorkOsAccessTokenFromCookies,
+  getWorkOsUserEmailFromCookies,
+} from '@/lib/auth/workos/session-cookie.server'
 import type { WorkOSJwtClaims } from '@/lib/auth/workos/types'
 
 import { createTenantClient } from './tenant-client.server'
@@ -21,10 +24,15 @@ export async function resolveTenantSession(): Promise<ResolvedTenantSession> {
   const workosToken = getWorkOsAccessTokenFromCookies()
   if (workosToken) {
     const claims = decodeWorkOsJwtClaims(workosToken)
+    const sessionEmail = getWorkOsUserEmailFromCookies()
+    const workosClaims =
+      claims && !claims.email && sessionEmail
+        ? { ...claims, email: sessionEmail }
+        : claims
     return {
       supabaseUser: null,
-      workosClaims: claims,
-      isAuthenticated: claims != null,
+      workosClaims,
+      isAuthenticated: workosClaims != null,
     }
   }
 

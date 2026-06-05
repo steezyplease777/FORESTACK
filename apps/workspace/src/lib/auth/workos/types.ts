@@ -37,6 +37,8 @@ export type WorkOSTokenResponse = {
   refreshToken?: string
   /** WorkOS user id — maps to JWT `sub` after token refresh. */
   userId?: string
+  /** From the authenticate response; JWT may omit `email` until the template adds it. */
+  userEmail?: string
 }
 
 /** Claims we expect in a WorkOS access token (Third-Party Auth). */

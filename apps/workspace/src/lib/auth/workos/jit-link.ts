@@ -8,11 +8,15 @@ import { decodeWorkOsJwtClaims } from '@/lib/auth/workos/jwt-claims'
 export async function jitLinkWorkOsCompanyUser(input: {
   companyId: string
   accessToken: string
+  /** From WorkOS authenticate `user.email` when the JWT omits `email`. */
+  emailOverride?: string
 }): Promise<{ linked: boolean; reason?: string }> {
   const claims = decodeWorkOsJwtClaims(input.accessToken)
   if (!claims) return { linked: false, reason: 'invalid_token' }
 
-  const email = claims.email?.trim().toLowerCase()
+  const email =
+    input.emailOverride?.trim().toLowerCase() ??
+    claims.email?.trim().toLowerCase()
   if (!email) return { linked: false, reason: 'no_email_claim' }
 
   let admin: ReturnType<typeof createServiceRoleClient>

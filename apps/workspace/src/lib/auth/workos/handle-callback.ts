@@ -53,7 +53,7 @@ export const handleWorkOSCallbackFn = createServerFn({ method: 'POST' })
     const json = (await response.json()) as {
       access_token?: string
       refresh_token?: string
-      user?: { id?: string }
+      user?: { id?: string; email?: string }
     }
 
     const accessToken = json.access_token
@@ -61,13 +61,15 @@ export const handleWorkOSCallbackFn = createServerFn({ method: 'POST' })
       throw new Error('WorkOS token exchange returned no access_token')
     }
 
-    setWorkOsAccessTokenCookie(accessToken)
+    const userEmail = json.user?.email?.trim().toLowerCase()
+    setWorkOsAccessTokenCookie(accessToken, userEmail)
 
     return {
       tokens: {
         accessToken,
         refreshToken: json.refresh_token,
         userId: json.user?.id,
+        userEmail,
       },
       sessionEstablished: true,
     }

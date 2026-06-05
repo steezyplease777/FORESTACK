@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 
+import { companyContextQueryKey } from '@/lib/auth/tenant-context'
 import { handleWorkOSCallbackFn } from '@/lib/auth/workos'
 import { jitLinkWorkOsCompanyUser } from '@/lib/auth/workos/jit-link'
 import { buildWorkOsRedirectUri } from '@/lib/auth/workos/redirect-uri'
@@ -70,10 +71,17 @@ const processCallback = createServerFn({ method: 'GET' })
       if (result.sessionEstablished && result.tokens.accessToken) {
         const company = await resolveCompanyBySlug(data.companySlug)
         if ('companyId' in company && company.companyId) {
-          await jitLinkWorkOsCompanyUser({
+          const jit = await jitLinkWorkOsCompanyUser({
             companyId: company.companyId,
             accessToken: result.tokens.accessToken,
+            emailOverride: result.tokens.userEmail,
           })
+          if (!jit.linked) {
+            console.warn(
+              `[workos-callback] JIT link skipped for ${data.companySlug}:`,
+              jit.reason,
+            )
+          }
         }
       }
 
@@ -107,7 +115,7 @@ export const Route = createFileRoute('/$companySlug/auth/workos-callback')({
         ? search.error_description
         : undefined,
   }),
-  beforeLoad: async ({ params, search }) => {
+  beforeLoad: async ({ params, search, context }) => {
     const result = await processCallback({
       data: {
         companySlug: params.companySlug,
@@ -125,6 +133,10 @@ export const Route = createFileRoute('/$companySlug/auth/workos-callback')({
         search: { error: result.message } as Record<string, string>,
       })
     }
+
+    context.queryClient.removeQueries({
+      queryKey: companyContextQueryKey(params.companySlug),
+    })
 
     tenantPostAuthRedirect(params.companySlug, result.next)
   },
