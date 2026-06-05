@@ -76,7 +76,7 @@ const rowSelectedBg =
 /** Sticky right actions column — solid bg + left edge so scrolled cells don't bleed through. */
 const actionsThClass = cn(
   thClass,
-  'sticky right-0 z-30 border-l border-r-0 border-border text-center',
+  'sticky top-0 right-0 z-30 border-l border-r-0 border-border text-center',
 )
 const actionsTdClass = cn(
   tdClass,
@@ -190,10 +190,10 @@ export function ExpenseAdminTable({
   )
 
   return (
-    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col font-sans">
+    <div className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col font-sans">
       <div
         ref={scrollRef}
-        className="scrollbar-auto-hide min-h-0 min-w-0 flex-1 overflow-auto"
+        className="scrollbar-auto-hide h-0 min-h-0 min-w-0 flex-1 overflow-auto"
         onScroll={onScrollbarReveal}
       >
         <table

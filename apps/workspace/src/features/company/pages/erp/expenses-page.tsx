@@ -180,7 +180,7 @@ export function ExpensesPage() {
   })
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
       {isInitialLoading ? (
         <TableSkeleton />
       ) : expensesQuery.error ? (
@@ -233,7 +233,7 @@ export function ExpensesPage() {
       ) : (
         <div
           className={cn(
-            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden bg-background font-sans font-normal',
+            'relative flex h-full min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden bg-background font-sans font-normal',
             isPaging ? 'opacity-60 transition-opacity' : undefined,
           )}
         >
@@ -265,7 +265,7 @@ export function ExpensesPage() {
           />
           </div>
 
-          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="relative flex h-0 min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <ExpenseAdminTable
               companyId={companyId}
               config={tableConfig}
