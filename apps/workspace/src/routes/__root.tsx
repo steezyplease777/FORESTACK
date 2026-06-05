@@ -59,13 +59,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-sans antialiased" suppressHydrationWarning>
         {children}
         {/*
-         * App-wide toast host.  Positioned top-center so toasts read as a
-         * global app-level banner rather than a notification tray; sonner
-         * portals above Radix Dialog overlays so they stay visible when a
-         * modal is open.  Consumers call `toast.success(…)` /
-         * `toast.error(…)` from `sonner`.
+         * App-wide toast host.  Bottom-center keeps toasts clear of table
+         * toolbars and bulk-action bars; sonner portals above Radix Dialog
+         * overlays so they stay visible when a modal is open.  Consumers call
+         * `toast.success(…)` / `toast.error(…)` from `sonner`.
          */}
-        <Toaster position="top-center" richColors />
+        <Toaster position="bottom-center" richColors />
         <AppDevtools />
         <Scripts />
       </body>

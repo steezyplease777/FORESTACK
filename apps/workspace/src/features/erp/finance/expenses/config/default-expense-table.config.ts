@@ -76,9 +76,9 @@ export const DEFAULT_EXPENSE_TABLE_CONFIG: ExpenseTableConfig = {
       actionType: 'delete',
       style: 'destructive',
       requireConfirmation: true,
-      confirmationTitle: 'Delete expenses?',
+      confirmationTitle: 'Delete selected?',
       confirmationMessage:
-        'This will permanently delete the selected expenses. This action cannot be undone.',
+        'This will permanently delete the selected records. This action cannot be undone.',
       confirmButtonLabel: 'Delete',
     },
   ],

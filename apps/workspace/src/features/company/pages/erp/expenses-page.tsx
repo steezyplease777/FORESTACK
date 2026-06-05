@@ -11,7 +11,6 @@ import {
 } from '@tabler/icons-react'
 
 import { useCompany } from '@/features/company/tenant-provider'
-import { PageHeader } from '@/components/composites/page-header'
 import { EmptyState } from '@/components/composites/empty-state'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -168,22 +167,12 @@ export function ExpensesPage() {
 
   return (
     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <PageHeader
-        className="shrink-0"
-        title="Expenses"
-        description={
-          total > 0
-            ? `${total.toLocaleString()} total — review and manage company expenses.`
-            : 'Review and manage company expenses.'
-        }
-      />
-
       {isInitialLoading ? (
         <TableSkeleton />
       ) : expensesQuery.error ? (
         <div className="rounded-md border border-destructive/20 bg-destructive/5 p-4">
           <p className="text-sm font-medium text-destructive">
-            Couldn't load expenses
+            Couldn't load data
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             {expensesQuery.error instanceof Error
@@ -219,11 +208,11 @@ export function ExpensesPage() {
             }
           />
           <EmptyState
-            title="No expenses found"
+            title="No results found"
             description={
               hasActiveFilters
                 ? 'Try adjusting your filters.'
-                : 'Expenses will appear here once created.'
+                : 'Records will appear here once created.'
             }
           />
         </div>

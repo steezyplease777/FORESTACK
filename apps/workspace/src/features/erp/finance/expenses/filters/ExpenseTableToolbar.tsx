@@ -71,7 +71,7 @@ export function ExpenseTableToolbar({
           <Input
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search expenses…"
+            placeholder="Search invoices…"
             className="h-8 border-0 bg-muted/50 pl-8 pr-8 shadow-none"
           />
           <IconSearch className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-foreground" />

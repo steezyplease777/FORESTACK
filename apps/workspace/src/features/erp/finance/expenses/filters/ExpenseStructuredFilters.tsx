@@ -127,7 +127,7 @@ export function ExpenseStructuredFilters({
             <div>
               <SheetTitle className="text-base">Filters</SheetTitle>
               <SheetDescription className="text-xs">
-                Narrow expenses by status, department, amount, and more.
+                Narrow by status, department, amount, and more.
               </SheetDescription>
             </div>
             {structuredCount > 0 ? (
