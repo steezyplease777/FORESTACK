@@ -3,15 +3,25 @@
 import * as React from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useDebouncedCallback } from '@tanstack/react-pacer'
+import { IconChevronLeft, IconChevronRight, IconSearch } from '@tabler/icons-react'
 
 import { useCompany } from '@/features/company/tenant-provider'
 import { PageHeader } from '@/components/composites/page-header'
-import { Card } from '@/components/ui/card'
+import { EmptyState } from '@/components/composites/empty-state'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
+import { totalPages } from '@/lib/data/_shared/pagination'
 
 import { ExpenseAdminTable } from '@/features/erp/finance/expenses/ExpenseAdminTable'
 import { DEFAULT_EXPENSE_TABLE_CONFIG } from '@/features/erp/finance/expenses/config/default-expense-table.config'
 import { ExpenseTableToolbar } from '@/features/erp/finance/expenses/filters/ExpenseTableToolbar'
-import { useExpenseStatuses } from '@/features/erp/finance/expenses/data/use-expenses-query'
+import { buildExpenseQueryParams } from '@/features/erp/finance/expenses/data/query-builder'
+import { toExpenseRow } from '@/features/erp/finance/expenses/data/to-row'
+import {
+  useExpenseStatuses,
+  useExpenses,
+} from '@/features/erp/finance/expenses/data/use-expenses-query'
 
 const routeApi = getRouteApi('/$companySlug/_authed/erp/finance/expenses/')
 
@@ -44,61 +54,185 @@ export function ExpensesPage() {
     { wait: 250 },
   )
 
+  const filters = { q: qFromUrl, statusId }
+  const queryParams = buildExpenseQueryParams(filters, sort, dir)
+  const expensesQuery = useExpenses(companyId, {
+    page,
+    pageSize,
+    ...queryParams,
+  })
   const statusesQuery = useExpenseStatuses(companyId)
   const statuses = statusesQuery.data ?? []
 
+  const result = expensesQuery.data
+  const rows = React.useMemo(
+    () => (result?.rows ?? []).map(toExpenseRow),
+    [result?.rows],
+  )
+  const total = result?.total ?? 0
+  const pageCount = totalPages(total, pageSize)
+  const isPaging = expensesQuery.isPlaceholderData
+  const isInitialLoading = expensesQuery.isLoading && !result
+
+  const setPage = (next: number) =>
+    navigate({ search: (prev) => ({ ...prev, page: next }) })
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6 p-4 lg:p-6">
       <PageHeader
         title="Expenses"
-        description="Review and manage company expenses."
+        description={
+          total > 0
+            ? `${total.toLocaleString()} total — review and manage company expenses.`
+            : 'Review and manage company expenses.'
+        }
       />
 
-      <Card className="gap-0 overflow-hidden p-0">
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <ExpenseTableToolbar
-            companyId={companyId}
-            filters={{ q: searchInput, statusId }}
-            statuses={statuses}
-            onSearchChange={(q) => {
-              setSearchInput(q)
-              commitSearch(q)
-            }}
-            onStatusChange={(nextStatusId) =>
-              navigate({
-                search: (prev) => ({
-                  ...prev,
-                  statusId: nextStatusId,
-                  page: 1,
-                }),
-              })
-            }
-          />
-        </div>
-
-        <ExpenseAdminTable
+      <div className="flex flex-col gap-3">
+        <ExpenseTableToolbar
           companyId={companyId}
-          config={DEFAULT_EXPENSE_TABLE_CONFIG}
-          filters={{ q: searchInput, statusId }}
-          page={page}
-          pageSize={pageSize}
-          sortColumn={sort}
-          sortDirection={dir}
-          onPageChange={(nextPage) =>
-            navigate({ search: (prev) => ({ ...prev, page: nextPage }) })
-          }
-          onSortChange={(sortColumn, sortDirection) =>
+          filters={filters}
+          statuses={statuses}
+          onStatusChange={(nextStatusId) =>
             navigate({
               search: (prev) => ({
                 ...prev,
-                sort: sortColumn,
-                dir: sortDirection,
+                statusId: nextStatusId,
                 page: 1,
               }),
             })
           }
         />
-      </Card>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {rows.length > 0 ? (
+              <>
+                Showing{' '}
+                <span className="font-medium text-foreground">
+                  {(page - 1) * pageSize + 1}–
+                  {(page - 1) * pageSize + rows.length}
+                </span>{' '}
+                of{' '}
+                <span className="font-medium text-foreground">
+                  {total.toLocaleString()}
+                </span>
+                {qFromUrl ? ` · filtered by "${qFromUrl}"` : ''}
+              </>
+            ) : (
+              'No results'
+            )}
+          </p>
+          <div className="relative">
+            <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="h-8 w-56 pl-8"
+              placeholder="Search expenses…"
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value)
+                commitSearch(e.target.value)
+              }}
+            />
+          </div>
+        </div>
+
+        {isInitialLoading ? (
+          <TableSkeleton />
+        ) : expensesQuery.error ? (
+          <div className="rounded-md border border-destructive/20 bg-destructive/5 p-4">
+            <p className="text-sm font-medium text-destructive">
+              Couldn't load expenses
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {expensesQuery.error instanceof Error
+                ? expensesQuery.error.message
+                : 'Unknown error'}
+            </p>
+          </div>
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title="No expenses found"
+            description={
+              qFromUrl || statusId
+                ? 'Try adjusting your filters.'
+                : 'Expenses will appear here once created.'
+            }
+          />
+        ) : (
+          <div
+            className={cn(
+              'overflow-hidden rounded-md border',
+              isPaging ? 'opacity-60 transition-opacity' : undefined,
+            )}
+          >
+            <ExpenseAdminTable
+              companyId={companyId}
+              config={DEFAULT_EXPENSE_TABLE_CONFIG}
+              rows={rows}
+              statuses={statuses}
+              sortColumn={sort}
+              sortDirection={dir}
+              onSortChange={(sortColumn, sortDirection) =>
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    sort: sortColumn,
+                    dir: sortDirection,
+                    page: 1,
+                  }),
+                })
+              }
+            />
+          </div>
+        )}
+
+        {pageCount > 1 ? (
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground tabular-nums">
+              Page {page} of {pageCount} · {pageSize} per page
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1 || isPaging}
+                onClick={() => setPage(Math.max(1, page - 1))}
+              >
+                <IconChevronLeft className="size-4" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= pageCount || isPaging}
+                onClick={() => setPage(Math.min(pageCount, page + 1))}
+              >
+                Next
+                <IconChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function TableSkeleton() {
+  return (
+    <div className="space-y-3 py-2">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-4 rounded-md border bg-muted/40 p-3"
+        >
+          <div className="size-10 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+          <div className="ml-auto h-4 w-20 animate-pulse rounded bg-muted" />
+        </div>
+      ))}
     </div>
   )
 }

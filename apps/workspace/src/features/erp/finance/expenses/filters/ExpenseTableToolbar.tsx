@@ -1,10 +1,8 @@
 // @ts-nocheck
 
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { IconSearch } from '@tabler/icons-react'
 
 import { Badge } from '@/components/reui/badge'
-import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { erpExpensesListQuery } from '@/lib/data/erp/expenses/queries'
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
@@ -15,7 +13,6 @@ type ExpenseTableToolbarProps = {
   companyId: string
   filters: ActiveFilters
   statuses: ExpenseStatus[]
-  onSearchChange: (q: string) => void
   onStatusChange: (statusId: string | undefined) => void
 }
 
@@ -60,47 +57,34 @@ export function ExpenseTableToolbar({
   companyId,
   filters,
   statuses,
-  onSearchChange,
   onStatusChange,
 }: ExpenseTableToolbarProps) {
   const counts = useExpenseStatusCounts(companyId, statuses, filters.q)
   const activeTab = filters.statusId ?? 'all'
 
   return (
-    <>
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) =>
-          onStatusChange(value === 'all' ? undefined : value)
-        }
-      >
-        <TabsList>
-          <TabsTrigger value="all">
-            All
-            <Badge variant="secondary" size="xs" className="ml-1.5">
-              {counts.all}
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) =>
+        onStatusChange(value === 'all' ? undefined : value)
+      }
+    >
+      <TabsList>
+        <TabsTrigger value="all">
+          All
+          <Badge variant="secondary" size="xs" className="ml-1.5">
+            {counts.all}
+          </Badge>
+        </TabsTrigger>
+        {statuses.map((status) => (
+          <TabsTrigger key={status.id} value={status.id}>
+            {status.name}
+            <Badge variant="outline" size="xs" className="ml-1.5">
+              {counts.byStatus[status.id] ?? 0}
             </Badge>
           </TabsTrigger>
-          {statuses.map((status) => (
-            <TabsTrigger key={status.id} value={status.id}>
-              {status.name}
-              <Badge variant="outline" size="xs" className="ml-1.5">
-                {counts.byStatus[status.id] ?? 0}
-              </Badge>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      <div className="relative">
-        <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="h-8 w-64 pl-8"
-          placeholder="Search expenses…"
-          value={filters.q}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
-    </>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 }

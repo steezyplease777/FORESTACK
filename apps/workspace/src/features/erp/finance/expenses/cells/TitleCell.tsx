@@ -33,13 +33,13 @@ export function TitleCell({ row, companyId, readOnly }: TitleCellProps) {
   const titleContent =
     readOnly || !editing ? (
       readOnly ? (
-        <span className="truncate text-sm font-medium">
+        <span className="truncate text-sm font-medium leading-tight">
           {row.title || '—'}
         </span>
       ) : (
         <button
           type="button"
-          className="truncate text-left text-sm font-medium hover:underline"
+          className="truncate text-left text-sm font-medium leading-tight hover:underline"
           onClick={() => setEditing(true)}
         >
           {row.title || 'Untitled'}
@@ -65,15 +65,15 @@ export function TitleCell({ row, companyId, readOnly }: TitleCellProps) {
 
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-muted">
-        <IconReceipt className="size-4 text-muted-foreground" />
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-md border bg-gradient-to-br from-muted to-muted/40 text-muted-foreground">
+        <IconReceipt className="size-4" />
       </div>
-      <div className="flex min-w-0 flex-col">
+      <div className="min-w-0">
         {titleContent}
         {row.expenseCategory ? (
-          <span className="truncate text-xs text-muted-foreground">
+          <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
             {row.expenseCategory}
-          </span>
+          </div>
         ) : null}
       </div>
     </div>

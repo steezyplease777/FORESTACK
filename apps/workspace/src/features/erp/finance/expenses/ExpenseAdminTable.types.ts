@@ -1,4 +1,7 @@
-import type { ExpenseRecord } from '@/lib/data/erp/expenses/types'
+import type {
+  ExpenseRecord,
+  ExpenseStatus,
+} from '@/lib/data/erp/expenses/types'
 
 export type ExpenseTableColumnId =
   | 'title'
@@ -41,12 +44,10 @@ export type ExpenseRow = {
 export type ExpenseAdminTableProps = {
   companyId: string
   config: ExpenseTableConfig
-  filters: ActiveFilters
-  page: number
-  pageSize: number
+  rows: ExpenseRow[]
+  statuses: ExpenseStatus[]
   sortColumn: 'created_at' | 'title' | 'amount'
   sortDirection: 'asc' | 'desc'
-  onPageChange: (page: number) => void
   onSortChange: (
     column: 'created_at' | 'title' | 'amount',
     direction: 'asc' | 'desc',
