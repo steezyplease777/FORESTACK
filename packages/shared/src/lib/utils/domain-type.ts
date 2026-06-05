@@ -71,6 +71,16 @@ export function whatPortal(host: string | null | undefined): PortalInfo {
   const domain = (host ?? '').toLowerCase().trim()
   if (!domain) return { type: 'STUDIO' }
 
+  // Dev tenant subdomains: `{slug}.localhost` or `{slug}.localhost:{port}`.
+  // Studio (:3000) and workspace (:3001) both use this pattern; `DEV_HOST` may
+  // only match one port in `.env.local`, so detect the hostname shape directly.
+  const localhostTenant = domain.match(
+    /^([a-z0-9][-a-z0-9]*)\.localhost(?::\d+)?$/,
+  )
+  if (localhostTenant?.[1]) {
+    return { type: 'TENANT', sub: localhostTenant[1] }
+  }
+
   if (domain === DEV_HOST) {
     return { type: 'STUDIO' }
   }

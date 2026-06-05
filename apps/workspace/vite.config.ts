@@ -10,6 +10,13 @@ import { cloudflare } from '@cloudflare/vite-plugin'
  */
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  // Workspace dev tenants use `{slug}.localhost:3001`; expose DEV_HOST to the
+  // client bundle so `whatPortal` / `tenantUrl` agree with the dev server port.
+  define: {
+    'import.meta.env.DEV_HOST': JSON.stringify(
+      process.env.DEV_HOST ?? 'localhost:3001',
+    ),
+  },
   plugins: [
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tailwindcss(),
