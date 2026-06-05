@@ -1,4 +1,44 @@
 /** Semantic field keys → Supabase columns (mirrors edge fn EXPENSE_FIELD_MAP). */
+
+export const EXPENSE_SORT_COLUMNS = [
+  'created_at',
+  'title',
+  'amount',
+  'status_id',
+  'vendor_id',
+  'category_id',
+  'payment_type',
+  'invoice_date',
+] as const
+
+export type ExpenseSortColumn = (typeof EXPENSE_SORT_COLUMNS)[number]
+
+/** URL `sort` param / server `sortColumn` → PostgREST `.order()` column. */
+export const EXPENSE_ORDER_COLUMN_BY_SORT: Record<ExpenseSortColumn, string> = {
+  created_at: 'created_at',
+  title: 'title',
+  amount: 'amount',
+  status_id: 'status_id',
+  vendor_id: 'vendor_id',
+  category_id: 'category_id',
+  payment_type: 'attributes->>payment_type',
+  invoice_date: 'attributes->>invoice_date',
+}
+
+export function isExpenseSortColumn(value: string): value is ExpenseSortColumn {
+  return (EXPENSE_SORT_COLUMNS as readonly string[]).includes(value)
+}
+
+export function sortColumnForTableColumn(
+  columnId: string,
+): ExpenseSortColumn | undefined {
+  const meta = EXPENSE_FIELD_MAP[columnId]
+  const col = meta?.sortColumn
+  if (col && isExpenseSortColumn(col)) return col
+  if (columnId === 'submittedAt') return 'created_at'
+  return undefined
+}
+
 export const EXPENSE_TABLE = 'erp_expenses'
 export const EXPENSE_STATUSES = 'erp_expense_statuses'
 export const EXPENSE_VENDORS = 'erp_vendors'
@@ -49,6 +89,18 @@ export const EXPENSE_FIELD_MAP: Record<string, ExpenseFieldMeta> = {
   relatedProject: {
     kind: 'projects',
     filterColumn: 'expense_projects.project_id',
+  },
+  paymentType: {
+    kind: 'jsonb_text',
+    filterColumn: 'attributes->>payment_type',
+    sortColumn: 'payment_type',
+    attributeKey: 'payment_type',
+  },
+  invoiceDate: {
+    kind: 'jsonb_text',
+    filterColumn: 'attributes->>invoice_date',
+    sortColumn: 'invoice_date',
+    attributeKey: 'invoice_date',
   },
 }
 

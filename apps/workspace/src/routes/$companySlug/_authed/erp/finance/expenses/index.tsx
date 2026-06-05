@@ -21,6 +21,7 @@ const expensesSearch = z.object({
     .positive()
     .max(MAX_PAGE_SIZE)
     .catch(DEFAULT_PAGE_SIZE),
+  statusIds: z.string().optional().catch(undefined),
   statusId: z.string().optional().catch(undefined),
   categoryIds: z.string().optional().catch(undefined),
   projectIds: z.string().optional().catch(undefined),
@@ -30,7 +31,18 @@ const expensesSearch = z.object({
   amountMax: z.string().optional().catch(undefined),
   dateFrom: z.string().optional().catch(undefined),
   dateTo: z.string().optional().catch(undefined),
-  sort: z.enum(['created_at', 'title', 'amount']).catch('created_at'),
+  sort: z
+    .enum([
+      'created_at',
+      'title',
+      'amount',
+      'status_id',
+      'vendor_id',
+      'category_id',
+      'payment_type',
+      'invoice_date',
+    ])
+    .catch('created_at'),
   dir: z.enum(['asc', 'desc']).catch('desc'),
 })
 
@@ -43,6 +55,7 @@ export const Route = createFileRoute(
       page,
       pageSize,
       q,
+      statusIds,
       statusId,
       categoryIds,
       projectIds,
@@ -59,6 +72,7 @@ export const Route = createFileRoute(
     page,
     pageSize,
     q,
+    statusIds,
     statusId,
     categoryIds,
     projectIds,
@@ -80,6 +94,7 @@ export const Route = createFileRoute(
       page,
       pageSize,
       q,
+      statusIds,
       statusId,
       categoryIds,
       projectIds,
@@ -104,11 +119,18 @@ export const Route = createFileRoute(
       return Number.isFinite(n) ? n : undefined
     }
 
+    const statusIdList = [
+      ...new Set([
+        ...(parseCsv(statusIds) ?? []),
+        ...(statusId?.trim() ? [statusId.trim()] : []),
+      ]),
+    ]
+
     const listParams = {
       page,
       pageSize,
       q,
-      statusId,
+      statusIds: statusIdList.length > 0 ? statusIdList : undefined,
       categoryIds: parseCsv(categoryIds),
       projectIds: parseCsv(projectIds),
       departmentValues: parseCsv(departmentValues),

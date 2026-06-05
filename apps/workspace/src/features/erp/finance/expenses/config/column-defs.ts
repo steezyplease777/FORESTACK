@@ -16,7 +16,7 @@ import type { ExpenseTableColumnId } from '../ExpenseAdminTable.types'
 
 export type ExpenseColumnDef = {
   label: string
-  /** Pixel width for `table-fixed` + `colgroup`. */
+  /** Pixel min-width for `colgroup` + horizontal scroll layout. */
   width: number
   align?: 'left' | 'right'
   /** Tabler icon for spreadsheet-style column header. */
@@ -43,7 +43,7 @@ export const EXPENSE_COLUMN_DEFS: Record<
   invoiceDate: { label: 'Invoice date', width: 100, icon: IconClock },
 }
 
-export const EXPENSE_CHECKBOX_COLUMN_WIDTH = 36
+export const EXPENSE_CHECKBOX_COLUMN_WIDTH = 40
 export const EXPENSE_ACTIONS_COLUMN_WIDTH = 40
 
 export function expenseTableMinWidth(columns: ExpenseTableColumnId[]): number {

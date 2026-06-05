@@ -1,9 +1,12 @@
 import type { ActiveFilters } from '../ExpenseAdminTable.types'
-import { EXPENSE_FIELD_MAP } from './field-map'
+import {
+  sortColumnForTableColumn,
+  type ExpenseSortColumn,
+} from './field-map'
 
 export type ExpenseQueryParams = {
   q?: string
-  statusId?: string
+  statusIds?: string[]
   categoryIds?: string[]
   projectIds?: string[]
   departmentValues?: string[]
@@ -12,7 +15,7 @@ export type ExpenseQueryParams = {
   amountMax?: number
   dateFrom?: string
   dateTo?: string
-  sortColumn?: 'created_at' | 'title' | 'amount'
+  sortColumn?: ExpenseSortColumn
   sortDirection?: 'asc' | 'desc'
 }
 
@@ -31,7 +34,8 @@ export function buildExpenseQueryParams(
 ): ExpenseQueryParams {
   return {
     q: filters.q.trim() || undefined,
-    statusId: filters.statusId,
+    statusIds:
+      filters.statusIds.length > 0 ? filters.statusIds : undefined,
     categoryIds:
       filters.categoryIds.length > 0 ? filters.categoryIds : undefined,
     projectIds:
@@ -52,7 +56,7 @@ export function buildExpenseQueryParams(
 
 export function countStructuredFilters(filters: ActiveFilters): number {
   let count = 0
-  if (filters.statusId) count += 1
+  if (filters.statusIds.length) count += 1
   if (filters.categoryIds.length) count += 1
   if (filters.projectIds.length) count += 1
   if (filters.departmentValues.length) count += 1
@@ -66,10 +70,6 @@ export function countStructuredFilters(filters: ActiveFilters): number {
 
 export function resolveSortColumn(
   columnId: string,
-): ExpenseQueryParams['sortColumn'] {
-  const meta = EXPENSE_FIELD_MAP[columnId]
-  const col = meta?.sortColumn
-  if (col === 'title' || col === 'amount' || col === 'created_at') return col
-  if (columnId === 'submittedAt') return 'created_at'
-  return 'created_at'
+): ExpenseSortColumn | undefined {
+  return sortColumnForTableColumn(columnId)
 }

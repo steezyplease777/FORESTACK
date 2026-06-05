@@ -17,7 +17,10 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { totalPages } from '@/lib/data/_shared/pagination'
 
+import { BulkActionsToolbar } from '@/features/erp/finance/expenses/bulk/BulkActionsToolbar'
+import { useExpenseBulkActions } from '@/features/erp/finance/expenses/bulk/use-expense-bulk-actions'
 import { ExpenseAdminTable } from '@/features/erp/finance/expenses/ExpenseAdminTable'
+import type { ExpenseRowSelection } from '@/features/erp/finance/expenses/ExpenseAdminTable.types'
 import { DEFAULT_EXPENSE_TABLE_CONFIG } from '@/features/erp/finance/expenses/config/default-expense-table.config'
 import { ExpenseTableToolbar } from '@/features/erp/finance/expenses/filters/ExpenseTableToolbar'
 import { buildExpenseQueryParams } from '@/features/erp/finance/expenses/data/query-builder'
@@ -119,6 +122,20 @@ export function ExpensesPage() {
     !!filters.dateFrom ||
     !!filters.dateTo
 
+  const tableConfig = DEFAULT_EXPENSE_TABLE_CONFIG
+  const bulkEnabled = tableConfig.bulkActionsEnabled !== false
+
+  // Selection persists across page changes (Softr bulk behavior).
+  const [selectedIds, setSelectedIds] = React.useState<ExpenseRowSelection>(
+    () => new Set(),
+  )
+
+  const bulk = useExpenseBulkActions({
+    companyId,
+    selectedIds,
+    onSelectionChange: setSelectedIds,
+  })
+
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-6">
       <PageHeader
@@ -212,26 +229,41 @@ export function ExpensesPage() {
             }
           />
 
-          <div className="overflow-x-auto">
-            <ExpenseAdminTable
-              companyId={companyId}
-              config={DEFAULT_EXPENSE_TABLE_CONFIG}
-              rows={rows}
+          {bulkEnabled && bulk.selectedCount > 0 ? (
+            <BulkActionsToolbar
+              selectedCount={bulk.selectedCount}
+              selectedIds={bulk.selectedIdList}
+              bulkActions={tableConfig.bulkActions ?? []}
               statuses={statuses}
-              sortColumn={sort}
-              sortDirection={dir}
-              onSortChange={(sortColumn, sortDirection) =>
-                navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    sort: sortColumn,
-                    dir: sortDirection,
-                    page: 1,
-                  }),
-                })
-              }
+              statusColors={tableConfig.statusColors}
+              isLoading={bulk.isBulkLoading}
+              onClear={bulk.clearSelection}
+              onChangeStatus={bulk.handleChangeStatus}
+              onExport={bulk.handleExport}
+              onDelete={bulk.handleDelete}
             />
-          </div>
+          ) : null}
+
+          <ExpenseAdminTable
+            companyId={companyId}
+            config={tableConfig}
+            rows={rows}
+            statuses={statuses}
+            sortColumn={sort}
+            sortDirection={dir}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onSortChange={(sortColumn, sortDirection) =>
+              navigate({
+                search: (prev) => ({
+                  ...prev,
+                  sort: sortColumn,
+                  dir: sortDirection,
+                  page: 1,
+                }),
+              })
+            }
+          />
 
           <div className="flex items-center justify-between gap-4 border-t bg-muted/20 px-3.5 py-1.5 text-xs text-foreground">
             <span className="tabular-nums">

@@ -42,6 +42,37 @@ export type ExpenseDocument = {
   created_at: string
 }
 
+export type ExpenseDocumentType = {
+  id: string
+  name: string
+  company_id: string
+}
+
+export type ExpenseDocumentSignedUrl = {
+  documentId: string
+  url: string
+  thumb?: string
+}
+
+export type ExpenseDocumentPreviewFile = {
+  id: string
+  url: string
+  name: string
+  mime: string
+  thumb?: string
+  docTitle?: string
+  createdAt?: string
+}
+
+export type CreateExpenseDocumentInput = {
+  expenseId: string
+  companyId: string
+  name: string
+  typeId: string
+  filePath: string
+  mimeType: string
+}
+
 /** Raw PostgREST row shape returned by list/detail selects. */
 export type ExpenseRecord = {
   id: string
@@ -77,7 +108,15 @@ export type ExpenseListParams = {
   amountMax?: number
   dateFrom?: string
   dateTo?: string
-  sortColumn?: 'created_at' | 'title' | 'amount'
+  sortColumn?:
+    | 'created_at'
+    | 'title'
+    | 'amount'
+    | 'status_id'
+    | 'vendor_id'
+    | 'category_id'
+    | 'payment_type'
+    | 'invoice_date'
   sortDirection?: 'asc' | 'desc'
 }
 

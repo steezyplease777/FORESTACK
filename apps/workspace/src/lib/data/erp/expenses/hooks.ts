@@ -13,18 +13,34 @@ import {
   totalPages,
 } from '@/lib/data/_shared/pagination'
 
+import { uploadExpenseDocumentFile } from './document-storage'
+import { expenseKeys } from './keys'
 import { invalidateErpExpenses } from './mutations'
 import {
   erpExpenseCategoriesQuery,
   erpExpenseDepartmentsQuery,
+  erpExpenseDocumentTypesQuery,
   erpExpenseProjectsQuery,
   erpExpenseStatusesQuery,
   erpExpenseTagsQuery,
   erpExpensesListQuery,
   type UseExpensesOptions,
 } from './queries'
-import { updateExpenseFn } from './server'
-import type { ExpenseRecord, ExpenseStatus, ExpenseUpdatePatch } from './types'
+import {
+  bulkUpdateExpensesFn,
+  signExpenseDocumentUrls,
+  updateExpenseFn,
+  uploadExpenseDocument,
+} from './server'
+import type {
+  CreateExpenseDocumentInput,
+  ExpenseDocument,
+  ExpenseDocumentSignedUrl,
+  ExpenseDocumentType,
+  ExpenseRecord,
+  ExpenseStatus,
+  ExpenseUpdatePatch,
+} from './types'
 
 export type { UseExpensesOptions } from './queries'
 
@@ -121,6 +137,73 @@ export function useExpenseUpdate(companyId: string) {
   return useMutation({
     mutationFn: (input: { id: string; patch: ExpenseUpdatePatch }) =>
       updateExpenseFn({ data: input }),
+    onSuccess: () => invalidateErpExpenses(qc, companyId),
+  })
+}
+
+export function useBulkExpenseUpdate(companyId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { ids: string[]; patch: ExpenseUpdatePatch }) =>
+      bulkUpdateExpensesFn({ data: input }),
+    onSuccess: () => invalidateErpExpenses(qc, companyId),
+  })
+}
+
+export function useExpenseDocumentTypes(companyId: string) {
+  return useQuery<ExpenseDocumentType[]>({
+    ...erpExpenseDocumentTypesQuery(companyId),
+    enabled: !!companyId,
+    placeholderData: keepPreviousData,
+  })
+}
+
+type SignDocumentItem = {
+  document: ExpenseDocument
+  expenseId: string
+}
+
+export function useExpenseDocumentSignedUrls(
+  companyId: string,
+  items: SignDocumentItem[],
+) {
+  const documentIds = React.useMemo(
+    () => items.map((item) => item.document.id).filter(Boolean),
+    [items],
+  )
+
+  return useQuery<ExpenseDocumentSignedUrl[]>({
+    queryKey: expenseKeys.signedUrls(companyId, documentIds),
+    queryFn: () =>
+      signExpenseDocumentUrls({
+        data: { companyId, items },
+      }),
+    enabled: !!companyId && items.length > 0,
+    staleTime: 50 * 60 * 1000,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useUploadExpenseDocument(companyId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (
+      input: Omit<CreateExpenseDocumentInput, 'filePath' | 'mimeType'> & {
+        file: File
+      },
+    ) => {
+      const filePath = await uploadExpenseDocumentFile(input.file)
+      return uploadExpenseDocument({
+        data: {
+          expenseId: input.expenseId,
+          companyId: input.companyId,
+          name: input.name,
+          typeId: input.typeId,
+          filePath,
+          mimeType: input.file.type || 'application/octet-stream',
+        },
+      })
+    },
     onSuccess: () => invalidateErpExpenses(qc, companyId),
   })
 }

@@ -12,12 +12,18 @@ import { expenseKeys } from './keys'
 import {
   getExpenseCategories,
   getExpenseDepartmentOptions,
+  getExpenseDocumentTypes,
   getExpenseProjectOptions,
   getExpenseStatuses,
   getExpenseTags,
   getExpenses,
 } from './server'
-import type { ExpenseListParams, ExpenseRecord, ExpenseStatus } from './types'
+import type {
+  ExpenseDocumentType,
+  ExpenseListParams,
+  ExpenseRecord,
+  ExpenseStatus,
+} from './types'
 
 export type UseExpensesOptions = Omit<ExpenseListParams, 'companyId'>
 
@@ -101,5 +107,17 @@ export function erpExpenseDepartmentsQuery(companyId: string) {
     queryKey: expenseKeys.departments(companyId),
     queryFn: () => getExpenseDepartmentOptions({ data: { companyId } }),
     staleTime: DEFAULT_REFERENCE_STALE_TIME,
+  }
+}
+
+export function erpExpenseDocumentTypesQuery(companyId: string) {
+  return {
+    queryKey: expenseKeys.documentTypes(companyId),
+    queryFn: () => getExpenseDocumentTypes({ data: { companyId } }),
+    staleTime: DEFAULT_REFERENCE_STALE_TIME,
+  } satisfies {
+    queryKey: ReturnType<typeof expenseKeys.documentTypes>
+    queryFn: () => Promise<ExpenseDocumentType[]>
+    staleTime: number
   }
 }

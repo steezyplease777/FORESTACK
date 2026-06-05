@@ -13,4 +13,8 @@ export const expenseKeys = {
     ['erp-expenses', 'projects', companyId] as const,
   departments: (companyId: string) =>
     ['erp-expenses', 'departments', companyId] as const,
+  documentTypes: (companyId: string) =>
+    ['erp-expenses', 'document-types', companyId] as const,
+  signedUrls: (companyId: string, documentIds: string[]) =>
+    ['erp-expenses', 'signed-urls', companyId, documentIds] as const,
 }

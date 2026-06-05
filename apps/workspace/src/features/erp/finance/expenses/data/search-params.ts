@@ -9,8 +9,20 @@ export function serializeCsvParam(values: string[]): string | undefined {
   return values.length > 0 ? values.join(',') : undefined
 }
 
+function mergeStatusIds(search: {
+  statusIds?: string
+  statusId?: string
+}): string[] {
+  const fromCsv = parseCsvParam(search.statusIds)
+  if (search.statusId?.trim()) {
+    return [...new Set([...fromCsv, search.statusId.trim()])]
+  }
+  return fromCsv
+}
+
 export function filtersFromSearch(search: {
   q?: string
+  statusIds?: string
   statusId?: string
   categoryIds?: string
   projectIds?: string
@@ -23,7 +35,7 @@ export function filtersFromSearch(search: {
 }): ActiveFilters {
   return {
     q: search.q ?? '',
-    statusId: search.statusId,
+    statusIds: mergeStatusIds(search),
     categoryIds: parseCsvParam(search.categoryIds),
     projectIds: parseCsvParam(search.projectIds),
     departmentValues: parseCsvParam(search.departmentValues),
@@ -40,7 +52,8 @@ export function filtersToSearchPatch(
 ): Record<string, string | undefined> {
   return {
     q: filters.q || undefined,
-    statusId: filters.statusId,
+    statusIds: serializeCsvParam(filters.statusIds),
+    statusId: undefined,
     categoryIds: serializeCsvParam(filters.categoryIds),
     projectIds: serializeCsvParam(filters.projectIds),
     departmentValues: serializeCsvParam(filters.departmentValues),

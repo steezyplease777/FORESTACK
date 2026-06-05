@@ -150,6 +150,12 @@ Source grouped view (~500 lines in body + 254 in section fetchers + settings) re
 
 Forestack v1 uses **server-paginated flat list** (PLM shell). Grouped mode needs a dedicated PR with group-by query RPC or multiple parallel list queries.
 
+### Virtualization (flat / ungrouped)
+
+**Done (Phase 1):** `ExpenseAdminTable` virtualizes the **current page only** (e.g. 50 rows) via `@tanstack/react-virtual` — fixed 48px row height, `max-h-[calc(100vh-280px)]` scroll container, sticky `<thead>`, top/bottom spacer `<tr>`s inside `<tbody>`.
+
+**Phase 2 (grouped):** Softr’s grouped path uses a flat `viewItems` list (headers + rows + sentinels) and one `useVirtualizer` over all sections (`SectionDataFetcher` per group). Do **not** mix grouped headers into the ungrouped virtualizer; implement grouped virtual mode as a separate render path when group-by ships.
+
 ---
 
 ## Keep vs drop
@@ -177,7 +183,8 @@ Forestack v1 uses **server-paginated flat list** (PLM shell). Grouped mode needs
 | --- | ---: | --- |
 | Toolbar (search + Filter + Group) | ~85% | Status tabs removed; search left, Filter/Group right; status moved into Filter submenu |
 | Table chrome (grid, row height, footer) | ~75% | Raw `<table>` with cell borders, checkbox + actions columns, `N rows` + page nav |
-| Column headers (icon + label + sort) | ~70% | Tabler icons from `column-defs`; sort chevrons on sortable cols |
+| Column headers (icon + label + sort) | ~85% | All config sortable cols wired to URL `sort`/`dir` + server `order`; chevron up/down on active col |
+| Row virtualization (ungrouped) | ~90% | `useVirtualizer` on current page rows; sticky header; 48px fixed height |
 | Submitted By cell | ~65% | Avatar initials + name from `attributes.softr_submitted_by_name` |
 | Status / Payment Type badges | ~70% | Config colors, rounded pills, `IconSelector` chevrons; status editable |
 | Title / Amount / Category cells | ~60% | Doc icon + title; currency right-align; category plain truncated text |

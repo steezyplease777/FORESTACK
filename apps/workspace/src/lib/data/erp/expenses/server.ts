@@ -8,9 +8,22 @@ import {
   type PaginatedResult,
 } from '@/lib/data/_shared/pagination'
 import { requireTenantSupabase } from '@/lib/data/_shared/tenant-supabase'
+import {
+  EXPENSE_ORDER_COLUMN_BY_SORT,
+  isExpenseSortColumn,
+} from '@/features/erp/finance/expenses/data/field-map'
 
+import { EXPENSE_DOCUMENTS_BUCKET } from './document-constants'
+import {
+  isImageMime,
+  resolveExpenseDocumentLocation,
+} from './document-paths'
 import type {
+  CreateExpenseDocumentInput,
   ExpenseCategory,
+  ExpenseDocument,
+  ExpenseDocumentSignedUrl,
+  ExpenseDocumentType,
   ExpenseListParams,
   ExpenseProjectOption,
   ExpenseRecord,
@@ -18,6 +31,9 @@ import type {
   ExpenseTag,
   ExpenseUpdatePatch,
 } from './types'
+
+const EXPENSE_DOCUMENT_SELECT =
+  'id,name,extension,file_path,type_id,created_at,expense_id,company_id'
 
 const EXPENSE_SELECT = `
   id,
@@ -52,6 +68,9 @@ export const getExpenses = createServerFn({ method: 'GET' })
     const sortColumn = data.sortColumn ?? 'created_at'
     const sortDirection = data.sortDirection ?? 'desc'
     const ascending = sortDirection === 'asc'
+    const orderColumn = isExpenseSortColumn(sortColumn)
+      ? EXPENSE_ORDER_COLUMN_BY_SORT[sortColumn]
+      : 'created_at'
 
     let query = supabase
       .from('erp_expenses')
@@ -63,8 +82,8 @@ export const getExpenses = createServerFn({ method: 'GET' })
       query = query.ilike('title', needle)
     }
 
-    if (data.statusId) {
-      query = query.eq('status_id', data.statusId)
+    if (data.statusIds?.length) {
+      query = query.in('status_id', data.statusIds)
     }
 
     if (data.categoryIds?.length) {
@@ -115,7 +134,7 @@ export const getExpenses = createServerFn({ method: 'GET' })
     }
 
     const { data: rows, count, error } = await query
-      .order(sortColumn, { ascending, nullsFirst: false })
+      .order(orderColumn, { ascending, nullsFirst: false })
       .range(from, to)
 
     if (error) throw new Error(error.message)
@@ -215,4 +234,155 @@ export const updateExpenseFn = createServerFn({ method: 'POST' })
       .single()
     if (error) throw new Error(error.message)
     return row as unknown as ExpenseRecord
+  })
+
+export type BulkUpdateExpensesResult = {
+  updatedCount: number
+  requestedCount: number
+}
+
+export const bulkUpdateExpensesFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (data: { ids: string[]; patch: ExpenseUpdatePatch }) => data,
+  )
+  .handler(async ({ data }): Promise<BulkUpdateExpensesResult> => {
+    const { supabase } = await requireTenantSupabase()
+    const ids = [...new Set(data.ids.filter(Boolean))]
+    if (ids.length === 0) {
+      return { updatedCount: 0, requestedCount: 0 }
+    }
+
+    const { data: rows, error } = await supabase
+      .from('erp_expenses')
+      .update(data.patch)
+      .in('id', ids)
+      .select('id')
+
+    if (error) throw new Error(error.message)
+
+    return {
+      updatedCount: rows?.length ?? 0,
+      requestedCount: ids.length,
+    }
+  })
+
+export const getExpenseDocumentTypes = createServerFn({ method: 'GET' })
+  .inputValidator((data: { companyId: string }) => data)
+  .handler(async ({ data }): Promise<ExpenseDocumentType[]> => {
+    const { supabase } = await requireTenantSupabase()
+    const { data: rows, error } = await supabase
+      .from('erp_expense_documents_types')
+      .select('id,name,company_id')
+      .eq('company_id', data.companyId)
+      .order('name')
+    if (error) throw new Error(error.message)
+    return (rows ?? []) as ExpenseDocumentType[]
+  })
+
+export const signExpenseDocumentUrls = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (data: {
+      companyId: string
+      items: Array<{
+        document: ExpenseDocument
+        expenseId: string
+      }>
+    }) => data,
+  )
+  .handler(async ({ data }): Promise<ExpenseDocumentSignedUrl[]> => {
+    const { supabase } = await requireTenantSupabase()
+    const pathsToSign: string[] = []
+    const pathByDocId = new Map<string, string>()
+    const directByDocId = new Map<string, string>()
+    const mimeByDocId = new Map<string, string>()
+
+    for (const item of data.items) {
+      const doc = item.document
+      if (!doc?.id) continue
+      const mime = doc.extension ?? ''
+      mimeByDocId.set(doc.id, mime)
+      const { storagePath, directUrl } = resolveExpenseDocumentLocation(
+        doc,
+        data.companyId,
+        item.expenseId,
+      )
+      if (directUrl) {
+        directByDocId.set(doc.id, directUrl)
+        continue
+      }
+      if (storagePath) {
+        pathsToSign.push(storagePath)
+        pathByDocId.set(doc.id, storagePath)
+      }
+    }
+
+    const signedByPath = new Map<string, string>()
+    if (pathsToSign.length > 0) {
+      const { data: signed, error } = await supabase.storage
+        .from(EXPENSE_DOCUMENTS_BUCKET)
+        .createSignedUrls(pathsToSign, 3600)
+      if (error) throw new Error(error.message)
+      for (const entry of signed ?? []) {
+        if (!entry?.path || entry.error) continue
+        const url =
+          entry.signedUrl ||
+          (entry as { signedURL?: string }).signedURL ||
+          ''
+        if (url) signedByPath.set(String(entry.path).replace(/^\/+/, ''), url)
+      }
+    }
+
+    const out: ExpenseDocumentSignedUrl[] = []
+    for (const item of data.items) {
+      const doc = item.document
+      if (!doc?.id) continue
+      const directUrl = directByDocId.get(doc.id)
+      const path = pathByDocId.get(doc.id)
+      const url = directUrl || (path ? signedByPath.get(path) || '' : '')
+      if (!url) continue
+      const mime = mimeByDocId.get(doc.id) ?? ''
+      out.push({
+        documentId: doc.id,
+        url,
+        thumb: isImageMime(mime) ? url : undefined,
+      })
+    }
+
+    return out
+  })
+
+export const uploadExpenseDocument = createServerFn({ method: 'POST' })
+  .inputValidator((data: CreateExpenseDocumentInput) => data)
+  .handler(async ({ data }): Promise<ExpenseDocument> => {
+    const { supabase, session } = await requireTenantSupabase()
+
+    const { data: expense, error: expenseError } = await supabase
+      .from('erp_expenses')
+      .select('id')
+      .eq('id', data.expenseId)
+      .eq('company_id', data.companyId)
+      .maybeSingle()
+    if (expenseError) throw new Error(expenseError.message)
+    if (!expense) throw new Error('Expense not found')
+
+    const insert: Record<string, unknown> = {
+      name: data.name.trim() || 'Document',
+      extension: data.mimeType || 'application/octet-stream',
+      file_path: data.filePath,
+      expense_id: data.expenseId,
+      company_id: data.companyId,
+      type_id: data.typeId,
+    }
+    if (session.supabaseUser?.id) {
+      insert.created_by = session.supabaseUser.id
+    }
+
+    const { data: row, error } = await supabase
+      .from('erp_expense_documents')
+      .insert(insert)
+      .select(EXPENSE_DOCUMENT_SELECT)
+      .single()
+    if (error) throw new Error(error.message)
+
+    return row as ExpenseDocument
   })

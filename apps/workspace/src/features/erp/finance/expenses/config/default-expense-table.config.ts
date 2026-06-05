@@ -10,7 +10,16 @@ export const DEFAULT_EXPENSE_TABLE_CONFIG: ExpenseTableConfig = {
     'title',
     'expenseCategory',
   ],
-  sortableColumns: ['title', 'amount', 'submittedAt'],
+  sortableColumns: [
+    'title',
+    'amount',
+    'submittedAt',
+    'status',
+    'vendor',
+    'expenseCategory',
+    'paymentType',
+    'invoiceDate',
+  ],
   pageSize: 50,
   defaultSortColumn: 'created_at',
   defaultSortDirection: 'desc',
@@ -39,6 +48,29 @@ export const DEFAULT_EXPENSE_TABLE_CONFIG: ExpenseTableConfig = {
       statusName: 'PAID',
       textColor: '#10b981',
       backgroundColor: '#d1fae5',
+    },
+  ],
+  bulkActionsEnabled: true,
+  bulkActions: [
+    {
+      label: 'Change status',
+      actionType: 'changeStatus',
+      style: 'primary',
+    },
+    {
+      label: 'Export',
+      actionType: 'export',
+      style: 'secondary',
+    },
+    {
+      label: 'Delete',
+      actionType: 'delete',
+      style: 'destructive',
+      requireConfirmation: true,
+      confirmationTitle: 'Delete expenses?',
+      confirmationMessage:
+        'This will permanently delete the selected expenses. This action cannot be undone.',
+      confirmButtonLabel: 'Delete',
     },
   ],
   paymentTypeColors: [

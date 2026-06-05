@@ -1,5 +1,8 @@
+import type * as React from 'react'
+
 import type {
   ExpenseDocument,
+  ExpenseDocumentType,
   ExpenseRecord,
   ExpenseStatus,
 } from '@/lib/data/erp/expenses/types'
@@ -39,6 +42,18 @@ export type PaymentTypeColorConfig = {
   backgroundColor: string
 }
 
+export type ExpenseBulkActionType = 'changeStatus' | 'export' | 'delete'
+
+export type ExpenseBulkActionConfig = {
+  label: string
+  actionType: ExpenseBulkActionType
+  style?: 'primary' | 'secondary' | 'destructive'
+  requireConfirmation?: boolean
+  confirmationTitle?: string
+  confirmationMessage?: string
+  confirmButtonLabel?: string
+}
+
 export type ExpenseTableConfig = {
   columns: ExpenseTableColumnId[]
   columnMeta?: ExpenseColumnMeta[]
@@ -49,11 +64,13 @@ export type ExpenseTableConfig = {
   paymentTypeColors: PaymentTypeColorConfig[]
   sortableColumns: ExpenseTableColumnId[]
   readOnly?: boolean
+  bulkActionsEnabled?: boolean
+  bulkActions?: ExpenseBulkActionConfig[]
 }
 
 export type ActiveFilters = {
   q: string
-  statusId?: string
+  statusIds: string[]
   categoryIds: string[]
   projectIds: string[]
   departmentValues: string[]
@@ -66,6 +83,7 @@ export type ActiveFilters = {
 
 export const EMPTY_ACTIVE_FILTERS: ActiveFilters = {
   q: '',
+  statusIds: [],
   categoryIds: [],
   projectIds: [],
   departmentValues: [],
@@ -74,6 +92,23 @@ export const EMPTY_ACTIVE_FILTERS: ActiveFilters = {
   amountMax: '',
   dateFrom: null,
   dateTo: null,
+}
+
+export function clearStructuredExpenseFilters(
+  filters: ActiveFilters,
+): ActiveFilters {
+  return {
+    ...filters,
+    statusIds: [],
+    categoryIds: [],
+    projectIds: [],
+    departmentValues: [],
+    tagIds: [],
+    amountMin: '',
+    amountMax: '',
+    dateFrom: null,
+    dateTo: null,
+  }
 }
 
 export type ExpenseTagEntry = { id: string; label: string }
@@ -104,6 +139,8 @@ export type ExpenseRow = {
   raw: ExpenseRecord
 }
 
+export type ExpenseRowSelection = Set<string>
+
 export type ExpenseAdminTableProps = {
   companyId: string
   config: ExpenseTableConfig
@@ -116,4 +153,16 @@ export type ExpenseAdminTableProps = {
     direction: 'asc' | 'desc',
   ) => void
   readOnly?: boolean
+  selectedIds?: ExpenseRowSelection
+  onSelectionChange?: React.Dispatch<React.SetStateAction<ExpenseRowSelection>>
+  documentTypes?: ExpenseDocumentType[]
+  signedUrlsByDocId?: Map<string, string>
+  isUploadingDocument?: boolean
+  onUploadDocument?: (input: {
+    expenseId: string
+    companyId: string
+    name: string
+    typeId: string
+    file: File
+  }) => Promise<void>
 }

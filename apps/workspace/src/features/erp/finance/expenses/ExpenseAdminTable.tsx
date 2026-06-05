@@ -48,7 +48,11 @@ const SORTABLE_COLUMN_MAP: Partial<
 const thClass =
   'sticky top-0 z-[3] border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground last:border-r-0'
 const tdClass =
-  'h-12 max-w-0 overflow-hidden border-b border-r border-border/70 px-2 align-middle last:border-r-0'
+  'h-12 overflow-hidden border-b border-r border-border/70 px-2 align-middle last:border-r-0'
+const checkboxThClass =
+  'sticky top-0 z-[3] w-10 border-b border-r-0 border-border/70 bg-background px-2 py-2 text-center'
+const checkboxTdClass =
+  'h-12 w-10 border-b border-r-0 border-border/70 px-2 text-center align-middle'
 
 export function ExpenseAdminTable({
   companyId,
@@ -59,16 +63,28 @@ export function ExpenseAdminTable({
   sortDirection,
   onSortChange,
   readOnly,
+  selectedIds: selectedIdsProp,
+  onSelectionChange,
 }: ExpenseAdminTableProps) {
   const columns = config.columns
   const tableMinWidth = expenseTableMinWidth(columns)
-  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
+  const bulkEnabled = config.bulkActionsEnabled !== false && !readOnly
+
+  const [internalSelectedIds, setInternalSelectedIds] = React.useState<
+    Set<string>
+  >(new Set())
+  const selectedIds = selectedIdsProp ?? internalSelectedIds
+  const setSelectedIds = onSelectionChange ?? setInternalSelectedIds
 
   const pageRowIds = React.useMemo(() => rows.map((r) => r.id), [rows])
   const allSelected =
-    pageRowIds.length > 0 && pageRowIds.every((id) => selectedIds.has(id))
+    bulkEnabled &&
+    pageRowIds.length > 0 &&
+    pageRowIds.every((id) => selectedIds.has(id))
   const someSelected =
-    !allSelected && pageRowIds.some((id) => selectedIds.has(id))
+    bulkEnabled &&
+    !allSelected &&
+    pageRowIds.some((id) => selectedIds.has(id))
 
   const toggleAll = (checked: boolean) => {
     setSelectedIds((prev) => {
@@ -92,32 +108,50 @@ export function ExpenseAdminTable({
   }
 
   return (
+    <div className="overflow-x-auto">
     <table
-      className="expense-grid-table w-full table-fixed border-separate border-spacing-0 text-sm"
+      className="expense-grid-table border-separate border-spacing-0 text-sm"
       style={{ minWidth: tableMinWidth }}
     >
       <colgroup>
-        <col style={{ width: EXPENSE_CHECKBOX_COLUMN_WIDTH }} />
-        {columns.map((columnId) => (
+        {bulkEnabled ? (
           <col
-            key={columnId}
-            style={{ width: EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100 }}
+            style={{
+              width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+              minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+            }}
           />
-        ))}
-        <col style={{ width: EXPENSE_ACTIONS_COLUMN_WIDTH }} />
+        ) : null}
+        {columns.map((columnId) => {
+          const minWidth = EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100
+          return <col key={columnId} style={{ minWidth }} />
+        })}
+        <col
+          style={{
+            width: EXPENSE_ACTIONS_COLUMN_WIDTH,
+            minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
+          }}
+        />
       </colgroup>
       <thead>
         <tr className="hover:bg-transparent">
-          <th
-            className={cn(thClass, 'w-9 text-center')}
-            style={{ width: EXPENSE_CHECKBOX_COLUMN_WIDTH }}
-          >
-            <Checkbox
-              checked={allSelected ? true : someSelected ? 'indeterminate' : false}
-              onCheckedChange={(v) => toggleAll(!!v)}
-              aria-label="Select all rows on this page"
-            />
-          </th>
+          {bulkEnabled ? (
+            <th
+              className={checkboxThClass}
+              style={{
+                width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+                minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+              }}
+            >
+              <Checkbox
+                checked={
+                  allSelected ? true : someSelected ? 'indeterminate' : false
+                }
+                onCheckedChange={(v) => toggleAll(!!v)}
+                aria-label="Select all rows on this page"
+              />
+            </th>
+          ) : null}
           {columns.map((columnId) => {
             const def = EXPENSE_COLUMN_DEFS[columnId]
             const label = def?.label ?? columnId
@@ -130,6 +164,7 @@ export function ExpenseAdminTable({
               <th
                 key={columnId}
                 className={cn(thClass, alignRight && 'text-right')}
+                style={{ minWidth: def?.width ?? 100 }}
               >
                 {sortable && resolvedSort ? (
                   <SortableHeader
@@ -149,7 +184,10 @@ export function ExpenseAdminTable({
           })}
           <th
             className={cn(thClass, 'text-center')}
-            style={{ width: EXPENSE_ACTIONS_COLUMN_WIDTH }}
+            style={{
+              width: EXPENSE_ACTIONS_COLUMN_WIDTH,
+              minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
+            }}
             aria-label="Row actions"
           />
         </tr>
@@ -160,16 +198,24 @@ export function ExpenseAdminTable({
             key={row.id}
             className={cn(
               'transition-colors hover:bg-muted/40',
-              selectedIds.has(row.id) && 'bg-muted/30',
+              bulkEnabled && selectedIds.has(row.id) && 'bg-muted/30',
             )}
           >
-            <td className={cn(tdClass, 'text-center')}>
-              <Checkbox
-                checked={selectedIds.has(row.id)}
-                onCheckedChange={(v) => toggleRow(row.id, !!v)}
-                aria-label={`Select row ${row.title || row.id}`}
-              />
-            </td>
+            {bulkEnabled ? (
+              <td
+                className={checkboxTdClass}
+                style={{
+                  width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+                  minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+                }}
+              >
+                <Checkbox
+                  checked={selectedIds.has(row.id)}
+                  onCheckedChange={(v) => toggleRow(row.id, !!v)}
+                  aria-label={`Select row ${row.title || row.id}`}
+                />
+              </td>
+            ) : null}
             {columns.map((columnId) => {
               const def = EXPENSE_COLUMN_DEFS[columnId]
               const alignRight = def?.align === 'right'
@@ -178,6 +224,7 @@ export function ExpenseAdminTable({
                 <td
                   key={columnId}
                   className={cn(tdClass, alignRight && 'text-right')}
+                  style={{ minWidth: def?.width ?? 100 }}
                 >
                   <ExpenseCell
                     columnId={columnId}
@@ -190,13 +237,20 @@ export function ExpenseAdminTable({
                 </td>
               )
             })}
-            <td className={cn(tdClass, 'text-center')}>
+            <td
+              className={cn(tdClass, 'text-center')}
+              style={{
+                width: EXPENSE_ACTIONS_COLUMN_WIDTH,
+                minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
+              }}
+            >
               <RowActionsCell row={row} />
             </td>
           </tr>
         ))}
       </tbody>
     </table>
+    </div>
   )
 }
 
