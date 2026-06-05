@@ -21,6 +21,7 @@ import {
 } from "@/config/modules.registry";
 import { useCompany } from "@/features/company/tenant-provider";
 import { usePageBreadcrumbTail } from "@/features/company/components/header/page-breadcrumb-context";
+import type { NavItem } from "@/lib/navigation/types";
 
 /**
  * Per-page sub-header that sits at the top of every portal's
@@ -84,16 +85,16 @@ export function PortalPageHeader() {
 type Crumb = { label: string; href?: string };
 
 /**
- * Derive a two-level breadcrumb from the pathname.
+ * Derive breadcrumbs from the current pathname.
  *
  * Shape: `/<companySlug>/<portal>/<...page>`
- *   - `wms/inventory`  -> [Warehouse, Inventory]
- *   - `crm/customers/:id` -> [Customers, Customers]  (detail falls back to parent label)
- *   - `dashboard`     -> [Home, Dashboard]
- *   - `/<companySlug>` (bare) -> [Home]
+ *   - `erp/finance/expenses` -> [ERP, Finance, Expenses]
+ *   - `erp/purchase-orders`  -> [ERP, Purchase Orders]
+ *   - `crm/customers/:id`    -> [Customers, Customers] + optional tail
+ *   - `dashboard`            -> [Home, Dashboard]
  *
- * Unknown segments fall back to a title-cased version of the raw slug
- * so we never render a blank crumb.
+ * Labels come from `modules.registry.ts` nav titles (including nested
+ * `items`). Unknown segments fall back to title-cased slugs.
  */
 function buildBreadcrumbs(
   pathname: string,
@@ -107,16 +108,11 @@ function buildBreadcrumbs(
 
   const base = `/${companySlug}`;
 
-  // Append a page-registered tail (e.g. detail page's entity name)
-  // after the URL-derived trail, promoting the previously-last crumb
-  // to a link back to its list. No-op when `tail` is null.
   const withTail = (crumbs: Crumb[]): Crumb[] => {
     if (!tail) return crumbs;
     if (crumbs.length === 0) return [{ label: tail }];
     const head = crumbs.slice(0, -1);
     const last = crumbs[crumbs.length - 1];
-    // Synthesize an href for the last crumb if it didn't already have
-    // one so users can click back to the list from the detail view.
     const lastLinked: Crumb = {
       ...last,
       href: last.href ?? inferListHref(pathname, companySlug),
@@ -129,7 +125,6 @@ function buildBreadcrumbs(
   const first = rest[0];
   const moduleDef = getModuleDefinition(first);
 
-  // Home portal pages live at /:companySlug/<page> (no "home" in URL).
   if (!moduleDef) {
     const homeItem = HOME_NAV_ITEMS.find((item) => item.url === first);
     return withTail([
@@ -140,34 +135,113 @@ function buildBreadcrumbs(
     ]);
   }
 
-  // Module overview = /:companySlug/<module> (no subpage).
   if (rest.length === 1) {
     return withTail([{ label: moduleDef.shortLabel }]);
   }
 
-  // Module sub-page: look up from the module's nav items. Detail routes
-  // (e.g. /customers/:id) inherit the nearest parent nav item's title.
-  const subPath = rest.join("/"); // e.g. "wms/inventory"
+  const subPath = rest.join("/");
   const navItems = getModuleNavItems(first) ?? [];
-  const matched =
-    navItems.find((item) => item.url === subPath) ??
-    navItems
-      .slice()
-      .sort((a, b) => b.url.length - a.url.length)
-      .find((item) => subPath.startsWith(`${item.url}/`));
-
-  // If we matched a parent nav item (detail route case), give the
-  // parent crumb an href so it becomes a real "back to list" link
-  // once a tail is registered.
-  const parentHref = matched ? `${base}/${matched.url}` : undefined;
+  const navTrail = resolveNavTrail(navItems, subPath, base);
 
   return withTail([
     { label: moduleDef.shortLabel, href: `${base}/${first}` },
-    {
-      label: matched?.title ?? titleCase(rest[rest.length - 1]),
-      href: parentHref,
-    },
+    ...navTrail,
   ]);
+}
+
+/** Map nav items to crumbs with tenant-scoped hrefs. */
+function navItemsToCrumbs(items: NavItem[], base: string): Crumb[] {
+  return items.map((item) => ({
+    label: item.title,
+    href: `${base}/${item.url}`,
+  }));
+}
+
+/**
+ * Resolve the nav-derived portion of a breadcrumb trail for a module
+ * sub-path. Walks nested `items` for grouped sidebar entries (e.g.
+ * Finance → Expenses), then falls back to longest-prefix match for
+ * detail routes, then to title-cased URL segments.
+ */
+function resolveNavTrail(
+  navItems: NavItem[],
+  subPath: string,
+  base: string,
+): Crumb[] {
+  const exact = findExactNavTrail(navItems, subPath);
+  if (exact.length > 0) return navItemsToCrumbs(exact, base);
+
+  const prefix = findPrefixNavTrail(navItems, subPath);
+  if (prefix.length > 0) return navItemsToCrumbs(prefix, base);
+
+  return fallbackSegmentCrumbs(subPath, base);
+}
+
+/** Exact URL match, including parent + child when both share a URL. */
+function findExactNavTrail(
+  navItems: NavItem[],
+  subPath: string,
+  ancestors: NavItem[] = [],
+): NavItem[] {
+  for (const item of navItems) {
+    if (item.url === subPath) {
+      const childWithSameUrl = item.items?.find((child) => child.url === subPath);
+      const chain = childWithSameUrl
+        ? [...ancestors, item, childWithSameUrl]
+        : [...ancestors, item];
+      return chain;
+    }
+    if (item.items?.length) {
+      const nested = findExactNavTrail(item.items, subPath, [...ancestors, item]);
+      if (nested.length > 0) return nested;
+    }
+  }
+  return [];
+}
+
+/** Longest nav URL that is a prefix of `subPath` (detail / nested routes). */
+function findPrefixNavTrail(
+  navItems: NavItem[],
+  subPath: string,
+  ancestors: NavItem[] = [],
+): NavItem[] {
+  let best: { trail: NavItem[]; urlLen: number } | null = null;
+
+  for (const item of navItems) {
+    const chain = [...ancestors, item];
+    if (subPath === item.url || subPath.startsWith(`${item.url}/`)) {
+      if (!best || item.url.length > best.urlLen) {
+        best = { trail: chain, urlLen: item.url.length };
+      }
+    }
+    if (item.items?.length) {
+      const nested = findPrefixNavTrail(item.items, subPath, chain);
+      if (nested.length > 0) {
+        const nestedLeaf = nested[nested.length - 1];
+        if (!best || nestedLeaf.url.length > best.urlLen) {
+          best = { trail: nested, urlLen: nestedLeaf.url.length };
+        }
+      }
+    }
+  }
+
+  return best?.trail ?? [];
+}
+
+/** Title-case each segment after the module slug when nav lookup misses. */
+function fallbackSegmentCrumbs(subPath: string, base: string): Crumb[] {
+  const parts = subPath.split("/");
+  const moduleSlug = parts[0];
+  const segments = parts.slice(1);
+  if (segments.length === 0) return [];
+
+  return segments.map((segment, index) => {
+    const partialPath = [moduleSlug, ...segments.slice(0, index + 1)].join("/");
+    return {
+      label: titleCase(segment),
+      href: `${base}/${partialPath}`,
+    };
+  });
 }
 
 /**
