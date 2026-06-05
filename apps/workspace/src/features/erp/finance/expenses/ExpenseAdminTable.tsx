@@ -1,6 +1,10 @@
 /**
- * Expense admin table — AG Grid implementation (Phase 1).
- * Legacy virtualized `<table>` preserved in `ExpenseAdminTable.legacy.tsx`.
+ * Expense admin table — legacy virtualized `<table>` (default).
+ * AG Grid Phase 1 experiment preserved in `./ag-grid/` (cold storage).
  */
-export { ExpenseAgGrid as ExpenseAdminTable, EXPENSE_ROW_HEIGHT } from './ag-grid/ExpenseAgGrid'
-export { formatExpenseAmount, formatExpenseDate } from './data/to-row'
+export {
+  ExpenseAdminTable,
+  EXPENSE_ROW_HEIGHT,
+  formatExpenseAmount,
+  formatExpenseDate,
+} from './ExpenseAdminTable.legacy'
