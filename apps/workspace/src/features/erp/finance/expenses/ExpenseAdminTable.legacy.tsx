@@ -35,6 +35,8 @@ import {
   expenseTableTotalWidth,
   useColumnResize,
 } from './hooks/use-column-resize'
+import { useScrollbarReveal } from './hooks/use-scrollbar-reveal'
+import './scrollbar-auto-hide.css'
 import {
   sortColumnForTableColumn,
   type ExpenseSortColumn,
@@ -118,6 +120,7 @@ export function ExpenseAdminTable({
   const setSelectedIds = onSelectionChange ?? setInternalSelectedIds
 
   const scrollRef = React.useRef<HTMLDivElement>(null)
+  const { onScroll: onScrollbarReveal } = useScrollbarReveal(scrollRef)
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -189,7 +192,8 @@ export function ExpenseAdminTable({
     <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
       <div
         ref={scrollRef}
-        className="min-h-0 min-w-0 flex-1 overflow-auto"
+        className="scrollbar-auto-hide min-h-0 min-w-0 flex-1 overflow-auto"
+        onScroll={onScrollbarReveal}
       >
         <table
           className={cn(
