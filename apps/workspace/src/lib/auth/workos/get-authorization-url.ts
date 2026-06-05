@@ -6,6 +6,13 @@ import {
 } from '@/lib/auth/workos/config'
 import type { WorkOSAuthorizeInput } from '@/lib/auth/workos/types'
 
+function readEnv(name: string): string | undefined {
+  return (
+    (typeof process !== 'undefined' ? process.env[name] : undefined) ??
+    (import.meta.env as Record<string, string | undefined>)[name]
+  )
+}
+
 export type GetWorkOSAuthorizationUrlInput = {
   companySlug: string
   redirectUri: string
@@ -54,17 +61,21 @@ export const getWorkOSAuthorizationUrlFn = createServerFn({ method: 'POST' })
   .inputValidator((data: GetWorkOSAuthorizationUrlInput) => data)
   .handler(async ({ data }): Promise<GetWorkOSAuthorizationUrlResult> => {
     const env = requireWorkOsEnv()
+    const workosOrganizationId =
+      data.workosOrganizationId?.trim() ||
+      readEnv('WORKOS_DEV_ORGANIZATION_ID')?.trim() ||
+      undefined
 
     const url = buildAuthorizationUrl(
       {
         companySlug: data.companySlug,
         redirectUri: data.redirectUri,
         state: data.state,
-        connection: data.workosOrganizationId || data.connectionId
+        connection: workosOrganizationId || data.connectionId
           ? {
-              organizationId: data.workosOrganizationId ?? '',
+              organizationId: workosOrganizationId ?? '',
               issuerUrl: '',
-              workosOrganizationId: data.workosOrganizationId,
+              workosOrganizationId,
               connectionId: data.connectionId,
             }
           : undefined,

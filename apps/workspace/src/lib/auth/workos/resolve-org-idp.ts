@@ -9,6 +9,7 @@ import { createClient } from '@/lib/datasource/supabase/server'
 import {
   getWorkOsEnv,
   isWorkOsAuthEnabled,
+  isWorkOsConfigured,
   workOsIssuerUrl,
 } from '@/lib/auth/workos/config'
 import type { WorkOSConnectionConfig } from '@/lib/auth/workos/types'
@@ -43,7 +44,7 @@ function devWorkOsIdp(organizationId: string): ResolvedOrgIdp {
   if (!isWorkOsAuthEnabled()) return null
 
   const env = getWorkOsEnv()
-  const devOrgId = readEnv('WORKOS_DEV_ORGANIZATION_ID')?.trim()
+  const devOrgId = readEnv('WORKOS_DEV_ORGANIZATION_ID')
 
   return {
     kind: 'workos',
@@ -81,14 +82,19 @@ async function loadOrgIdpFromDb(
   const row = data as OrganizationIdentityProviderRow
 
   if (isWorkOsProvider(row)) {
-    return {
-      kind: 'workos',
-      connection: workOsConfigFromRow(
-        row.organization_id,
-        row.issuer_url,
-        row.config as WorkOsIdpConfig,
-      ),
+    if (!isWorkOsConfigured()) {
+      return { kind: 'supabase_fallback' }
     }
+    const connection = workOsConfigFromRow(
+      row.organization_id,
+      row.issuer_url,
+      row.config as WorkOsIdpConfig,
+    )
+    const devOrgId = readEnv('WORKOS_DEV_ORGANIZATION_ID')
+    if (!connection.workosOrganizationId && !connection.connectionId && devOrgId) {
+      connection.workosOrganizationId = devOrgId
+    }
+    return { kind: 'workos', connection }
   }
 
   if (row.provider_kind === 'supabase_fallback') {
