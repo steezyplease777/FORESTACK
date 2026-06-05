@@ -51,12 +51,19 @@ export const EXPENSE_COLUMN_DEFS: Record<
 export const EXPENSE_CHECKBOX_COLUMN_WIDTH = 40
 export const EXPENSE_ACTIONS_COLUMN_WIDTH = 40
 
-export function expenseTableMinWidth(columns: ExpenseTableColumnId[]): number {
+export function expenseTableMinWidth(
+  columns: ExpenseTableColumnId[],
+  columnWidths?: Partial<Record<ExpenseTableColumnId, number>>,
+  options?: { bulkEnabled?: boolean },
+): number {
+  const checkbox =
+    options?.bulkEnabled === false ? 0 : EXPENSE_CHECKBOX_COLUMN_WIDTH
   return (
-    EXPENSE_CHECKBOX_COLUMN_WIDTH +
+    checkbox +
     EXPENSE_ACTIONS_COLUMN_WIDTH +
     columns.reduce(
-      (sum, id) => sum + (EXPENSE_COLUMN_DEFS[id]?.width ?? 100),
+      (sum, id) =>
+        sum + (columnWidths?.[id] ?? EXPENSE_COLUMN_DEFS[id]?.width ?? 100),
       0,
     )
   )

@@ -30,8 +30,11 @@ import {
   EXPENSE_ACTIONS_COLUMN_WIDTH,
   EXPENSE_CHECKBOX_COLUMN_WIDTH,
   EXPENSE_COLUMN_DEFS,
-  expenseTableMinWidth,
 } from './config/column-defs'
+import {
+  expenseTableTotalWidth,
+  useColumnResize,
+} from './hooks/use-column-resize'
 import {
   sortColumnForTableColumn,
   type ExpenseSortColumn,
@@ -51,13 +54,22 @@ import type {
 export const EXPENSE_ROW_HEIGHT = 48
 
 const thClass =
-  'sticky top-0 z-10 border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground last:border-r-0'
+  'sticky top-0 z-10 border-b border-r border-border/70 bg-background px-2 py-2 text-xs font-medium text-foreground'
 const tdClass =
-  'h-12 overflow-hidden border-b border-r border-border/70 px-2 align-middle last:border-r-0'
+  'h-12 overflow-hidden border-b border-r border-border/70 bg-background px-2 align-middle'
 const checkboxThClass =
   'sticky top-0 z-10 w-10 border-b border-r-0 border-border/70 bg-background px-2 py-2 text-center'
 const checkboxTdClass =
-  'h-12 w-10 border-b border-r-0 border-border/70 px-2 text-center align-middle'
+  'h-12 w-10 border-b border-r-0 border-border/70 bg-background px-2 text-center align-middle'
+/** Sticky right actions column — painted bg + left edge so scrolled cells don't bleed through. */
+const actionsThClass = cn(
+  thClass,
+  'sticky right-0 z-20 border-l border-r-0 border-border/70 text-center shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]',
+)
+const actionsTdClass = cn(
+  tdClass,
+  'sticky right-0 z-[1] border-l border-r-0 border-border/70 text-center shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]',
+)
 
 export function ExpenseAdminTable({
   companyId,
@@ -77,8 +89,16 @@ export function ExpenseAdminTable({
   creditCardsById,
 }: ExpenseAdminTableProps) {
   const columns = config.columns
-  const tableMinWidth = expenseTableMinWidth(columns)
   const bulkEnabled = config.bulkActionsEnabled !== false && !readOnly
+  const {
+    columnWidths,
+    columnSizeVars,
+    resizingColumn,
+    getResizeHandler,
+  } = useColumnResize(columns)
+  const tableMinWidth = expenseTableTotalWidth(columns, columnWidths, {
+    bulkEnabled,
+  })
 
   const [internalSelectedIds, setInternalSelectedIds] = React.useState<
     Set<string>
@@ -161,8 +181,16 @@ export function ExpenseAdminTable({
         className="min-h-0 min-w-0 flex-1 overflow-auto"
       >
         <table
-          className="expense-grid-table w-full border-separate border-spacing-0 text-sm"
-          style={{ minWidth: tableMinWidth }}
+          className={cn(
+            'expense-grid-table w-full border-separate border-spacing-0 text-sm',
+            resizingColumn && 'cursor-col-resize select-none',
+          )}
+          style={{
+            ...columnSizeVars,
+            width: tableMinWidth,
+            minWidth: '100%',
+            tableLayout: 'fixed',
+          }}
         >
           <colgroup>
             {bulkEnabled ? (
@@ -173,10 +201,15 @@ export function ExpenseAdminTable({
                 }}
               />
             ) : null}
-            {columns.map((columnId) => {
-              const minWidth = EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100
-              return <col key={columnId} style={{ minWidth }} />
-            })}
+            {columns.map((columnId) => (
+              <col
+                key={columnId}
+                style={{
+                  width: `calc(var(--col-${columnId}-size) * 1px)`,
+                  minWidth: EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100,
+                }}
+              />
+            ))}
             <col
               style={{
                 width: EXPENSE_ACTIONS_COLUMN_WIDTH,
@@ -214,8 +247,15 @@ export function ExpenseAdminTable({
                 return (
                   <th
                     key={columnId}
-                    className={cn(thClass, alignRight && 'text-right')}
-                    style={{ minWidth: def?.width ?? 100 }}
+                    className={cn(
+                      thClass,
+                      'relative',
+                      alignRight && 'text-right',
+                    )}
+                    style={{
+                      width: `calc(var(--col-${columnId}-size) * 1px)`,
+                      minWidth: def?.width ?? 100,
+                    }}
                   >
                     {sortable && resolvedSort ? (
                       <SortableHeader
@@ -234,11 +274,16 @@ export function ExpenseAdminTable({
                         alignRight={alignRight}
                       />
                     )}
+                    <ColumnResizeHandle
+                      columnId={columnId}
+                      isResizing={resizingColumn === columnId}
+                      onResizeStart={getResizeHandler(columnId)}
+                    />
                   </th>
                 )
               })}
               <th
-                className={cn(thClass, 'text-center')}
+                className={actionsThClass}
                 style={{
                   width: EXPENSE_ACTIONS_COLUMN_WIDTH,
                   minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
@@ -262,6 +307,7 @@ export function ExpenseAdminTable({
                   key={row.id}
                   row={row}
                   columns={columns}
+                  columnWidths={columnWidths}
                   companyId={companyId}
                   statuses={statuses}
                   config={config}
@@ -304,9 +350,36 @@ export function ExpenseAdminTable({
   )
 }
 
+function ColumnResizeHandle({
+  columnId,
+  isResizing,
+  onResizeStart,
+}: {
+  columnId: ExpenseTableColumnId
+  isResizing: boolean
+  onResizeStart: (e: React.MouseEvent | React.TouchEvent) => void
+}) {
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label={`Resize ${EXPENSE_COLUMN_DEFS[columnId]?.label ?? columnId} column`}
+      className={cn(
+        'absolute top-0 right-0 z-[5] h-full w-2 -mr-1 cursor-col-resize touch-none select-none',
+        'after:absolute after:top-0 after:left-1/2 after:h-full after:w-px after:-translate-x-1/2 after:bg-transparent after:transition-colors',
+        'hover:after:bg-primary',
+        isResizing && 'after:bg-primary after:h-screen',
+      )}
+      onMouseDown={onResizeStart}
+      onTouchStart={onResizeStart}
+    />
+  )
+}
+
 function ExpenseTableRow({
   row,
   columns,
+  columnWidths,
   companyId,
   statuses,
   config,
@@ -322,6 +395,7 @@ function ExpenseTableRow({
 }: {
   row: ExpenseRow
   columns: ExpenseTableColumnId[]
+  columnWidths: Record<ExpenseTableColumnId, number>
   companyId: string
   statuses: ExpenseStatus[]
   config: ExpenseTableConfig
@@ -338,14 +412,18 @@ function ExpenseTableRow({
   return (
     <tr
       className={cn(
-        'transition-colors hover:bg-muted/40',
+        'group transition-colors',
         bulkEnabled && selected && 'bg-muted/30',
       )}
       style={style}
     >
       {bulkEnabled ? (
         <td
-          className={checkboxTdClass}
+          className={cn(
+            checkboxTdClass,
+            'group-hover:bg-muted/40',
+            selected && 'bg-muted/30',
+          )}
           style={{
             width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
             minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
@@ -365,8 +443,16 @@ function ExpenseTableRow({
         return (
           <td
             key={columnId}
-            className={cn(tdClass, alignRight && 'text-right')}
-            style={{ minWidth: def?.width ?? 100 }}
+            className={cn(
+              tdClass,
+              'group-hover:bg-muted/40',
+              bulkEnabled && selected && 'bg-muted/30',
+              alignRight && 'text-right',
+            )}
+            style={{
+              width: `calc(var(--col-${columnId}-size) * 1px)`,
+              minWidth: def?.width ?? 100,
+            }}
           >
             <ExpenseCell
               columnId={columnId}
@@ -384,7 +470,11 @@ function ExpenseTableRow({
         )
       })}
       <td
-        className={cn(tdClass, 'text-center')}
+        className={cn(
+          actionsTdClass,
+          'group-hover:bg-muted/40',
+          bulkEnabled && selected && 'bg-muted/30',
+        )}
         style={{
           width: EXPENSE_ACTIONS_COLUMN_WIDTH,
           minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,

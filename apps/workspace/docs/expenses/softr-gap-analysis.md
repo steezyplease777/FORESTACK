@@ -103,12 +103,12 @@ Title · Category · Department · Invoice Due Date · Submitted At · Direction
 | Row height | Configurable `row-density` | Fixed `EXPENSE_ROW_HEIGHT = 48` (`h-12`) | **Partial** |
 | Sticky header | `position: sticky` on `<th>` | `sticky top-0 z-10` on `<th>` | **Done** |
 | Checkbox column | 36px when `bulkActionsEnabled === 'enabled'` | 40px when `bulkActionsEnabled` | **Done** (live: off) |
-| Actions column | Sticky right (`z-index`, painted border) | 40px, **not sticky** on horizontal scroll | **Partial** |
-| Horizontal scroll | `table.getTotalSize()` + `columnSizeVars` | `minWidth` from `expenseTableMinWidth()` | **Partial** |
-| Column resize | TanStack `columnResizeMode: 'onChange'`, drag handles (~L11365) | Fixed `colgroup` minWidths | **Missing** |
-| `table-layout: fixed` | Yes | Implicit via col widths | **Partial** |
+| Actions column | Sticky right (`z-index`, painted border) | `position: sticky; right: 0` on actions `<th>`/`<td>`, painted bg + left shadow | **Done** |
+| Horizontal scroll | `table.getTotalSize()` + `columnSizeVars` | `expenseTableTotalWidth()` + `--col-*-size` CSS vars | **Done** |
+| Column resize | TanStack `columnResizeMode: 'onChange'`, drag handles (~L11365) | `useColumnResize` hook + header drag handles, session state | **Done** |
+| `table-layout: fixed` | Yes | `tableLayout: 'fixed'` + colgroup widths | **Done** |
 | Webhook loading overlay | Frosted blur over table (~L11999) | None | **Missing** |
-| Footer inside card | `invoice-table-footer` muted bar | `expenses-page.tsx` border-t footer | **Done** |
+| Footer inside card | `invoice-table-footer` muted bar, pinned below scroll region | `expenses-page.tsx` flex card: toolbar/bulk `shrink-0`, table `flex-1 min-h-0`, footer `shrink-0` | **Done** |
 
 ---
 
@@ -306,8 +306,9 @@ Forestack: `getCreditCardsCatalog` in `lib/data/erp/expenses/server.ts` (same em
 | Bulk delete (server mutation) | **P1** | Missing |
 | Bulk webhook actions + loading overlay | **P1** | Missing |
 | `PaymentTypeComboboxCell` parity | **P1** | Missing |
-| Column resize + `--header-*-size` CSS vars | **P1** | Missing |
-| Sticky right actions column on horizontal scroll | **P1** | Missing |
+| Column resize + `--col-*-size` CSS vars | **P1** | **Done** |
+| Sticky right actions column on horizontal scroll | **P1** | **Done** |
+| Footer pinned to bottom of main card (flex layout) | **P1** | **Done** |
 | `EditableDateCell` for invoice/due date | **P1** | Missing |
 | `titleContains` structured filter | **P2** | Missing |
 | `ProjectComboboxCell` + `InvoiceTagComboboxCell` | **P2** | Missing |
@@ -363,7 +364,7 @@ Forestack: `getCreditCardsCatalog` in `lib/data/erp/expenses/server.ts` (same em
 6. **Bulk export** — field picker + CSV (`handleBulkExport` / `exportFieldOptions`)  
 7. **Bulk delete** — server mutation (not toast stub)  
 8. **Payment type editable combobox** — `PaymentTypeComboboxCell`  
-9. **Column resize + sticky actions column** — TanStack `columnResizeMode: 'onChange'`  
+9. ~~**Column resize + sticky actions column**~~ — **Done** (`use-column-resize.ts`, sticky `.actions-cell` pattern)  
 10. **Editable invoice/due date** — `EditableDateCell` on `invoiceDate` column  
 
 ---

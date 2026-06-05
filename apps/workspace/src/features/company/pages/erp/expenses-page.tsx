@@ -179,7 +179,7 @@ export function ExpensesPage() {
   })
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       {isInitialLoading ? (
         <TableSkeleton />
       ) : expensesQuery.error ? (
@@ -232,10 +232,11 @@ export function ExpensesPage() {
       ) : (
         <div
           className={cn(
-            'flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-md border',
+            'relative flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-md border',
             isPaging ? 'opacity-60 transition-opacity' : undefined,
           )}
         >
+          <div className="shrink-0">
           <ExpenseTableToolbar
             companyId={companyId}
             filters={filters}
@@ -261,8 +262,10 @@ export function ExpensesPage() {
               })
             }
           />
+          </div>
 
           {bulkEnabled && bulk.selectedCount > 0 ? (
+            <div className="shrink-0">
             <BulkActionsToolbar
               selectedCount={bulk.selectedCount}
               selectedIds={bulk.selectedIdList}
@@ -275,6 +278,7 @@ export function ExpensesPage() {
               onExport={bulk.handleExport}
               onDelete={bulk.handleDelete}
             />
+            </div>
           ) : null}
 
           <ExpenseAdminTable
@@ -303,7 +307,7 @@ export function ExpensesPage() {
             }
           />
 
-          <div className="flex shrink-0 items-center justify-between gap-4 border-t bg-muted/20 px-3.5 py-1.5 text-xs text-foreground">
+          <footer className="expense-table-footer flex shrink-0 items-center justify-between gap-4 border-t bg-muted/20 px-3.5 py-1.5 text-xs text-foreground">
             <span className="tabular-nums">
               {total.toLocaleString()} rows
             </span>
@@ -354,7 +358,7 @@ export function ExpensesPage() {
                 </Button>
               </div>
             </div>
-          </div>
+          </footer>
         </div>
       )}
     </div>
