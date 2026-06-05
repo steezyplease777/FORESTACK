@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useDebouncedCallback } from '@tanstack/react-pacer'
+import { toast } from 'sonner'
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -264,24 +265,7 @@ export function ExpensesPage() {
           />
           </div>
 
-          {bulkEnabled && bulk.selectedCount > 0 ? (
-            <div className="shrink-0">
-            <BulkActionsToolbar
-              selectedCount={bulk.selectedCount}
-              selectedIds={bulk.selectedIdList}
-              bulkActions={tableConfig.bulkActions ?? []}
-              statuses={statuses}
-              statusColors={tableConfig.statusColors}
-              isLoading={bulk.isBulkLoading}
-              onClear={bulk.clearSelection}
-              onChangeStatus={bulk.handleChangeStatus}
-              onExport={bulk.handleExport}
-              onDelete={bulk.handleDelete}
-            />
-            </div>
-          ) : null}
-
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <ExpenseAdminTable
               companyId={companyId}
               config={tableConfig}
@@ -307,11 +291,38 @@ export function ExpensesPage() {
                 })
               }
             />
+
+            {bulkEnabled && bulk.selectedCount > 0 ? (
+              <div className="pointer-events-none absolute inset-x-0 bottom-3 z-50 flex justify-center px-4">
+                <div className="pointer-events-auto">
+                  <BulkActionsToolbar
+                    selectedCount={bulk.selectedCount}
+                    selectedIds={bulk.selectedIdList}
+                    totalMatchingCount={total}
+                    bulkActions={tableConfig.bulkActions ?? []}
+                    statuses={statuses}
+                    statusColors={tableConfig.statusColors}
+                    isLoading={bulk.isBulkLoading}
+                    onClear={bulk.clearSelection}
+                    onSelectAllMatching={() => {
+                      toast.info('Select all matching coming soon', {
+                        description: `Would select all ${total.toLocaleString()} matching rows.`,
+                      })
+                    }}
+                    onChangeStatus={bulk.handleChangeStatus}
+                    onExport={bulk.handleExport}
+                    onDelete={bulk.handleDelete}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <footer className="expense-table-footer mt-auto flex shrink-0 items-center justify-between gap-4 border-t border-border bg-muted/30 px-3.5 py-1.5 text-xs text-muted-foreground">
             <span className="tabular-nums">
-              {total.toLocaleString()} rows
+              {bulkEnabled && bulk.selectedCount > 0
+                ? `${bulk.selectedCount.toLocaleString()} of ${total.toLocaleString()} rows selected`
+                : `${total.toLocaleString()} rows`}
             </span>
             <div className="flex items-center gap-4">
               <span className="tabular-nums">

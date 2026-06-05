@@ -26,11 +26,13 @@ import type {
 type BulkActionsToolbarProps = {
   selectedCount: number
   selectedIds: string[]
+  totalMatchingCount?: number
   bulkActions: ExpenseBulkActionConfig[]
   statuses: ExpenseStatus[]
   statusColors?: StatusColorConfig[]
   isLoading?: boolean
   onClear: () => void
+  onSelectAllMatching?: () => void
   onChangeStatus: (statusId: string) => void
   onExport: () => void
   onDelete: () => void
@@ -62,11 +64,13 @@ const toolbarButtonClass =
 export function BulkActionsToolbar({
   selectedCount,
   selectedIds,
+  totalMatchingCount,
   bulkActions,
   statuses,
   statusColors,
   isLoading,
   onClear,
+  onSelectAllMatching,
   onChangeStatus,
   onExport,
   onDelete,
@@ -170,14 +174,19 @@ export function BulkActionsToolbar({
 
   const deleteAction = safeActions.find((a) => a.actionType === 'delete')
 
+  const showSelectAllMatching =
+    typeof totalMatchingCount === 'number' &&
+    totalMatchingCount > selectedCount &&
+    typeof onSelectAllMatching === 'function'
+
   return (
     <>
       <div
         role="toolbar"
         aria-label="Bulk actions"
-        className="bulk-actions-toolbar mx-3 mb-2 inline-flex max-w-full flex-wrap items-center gap-2 rounded-lg border border-white/8 bg-slate-900 px-3.5 py-2 text-slate-50 shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-300"
+        className="bulk-actions-toolbar inline-flex max-w-[calc(100%-2rem)] flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-foreground px-4 py-2.5 text-background shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-300"
       >
-        <span className="mr-1 text-xs font-semibold tabular-nums">
+        <span className="mr-0.5 text-xs font-semibold tabular-nums">
           {selectedCount} selected
         </span>
 
@@ -185,10 +194,24 @@ export function BulkActionsToolbar({
           type="button"
           onClick={onClear}
           disabled={isLoading}
-          className="rounded-md px-2.5 py-1 text-xs font-medium text-slate-50/85 transition-colors hover:bg-white/10 disabled:opacity-55"
+          className="rounded-md px-2.5 py-1 text-xs font-medium text-background/85 transition-colors hover:bg-background/10 disabled:opacity-55"
         >
           Clear
         </button>
+
+        {showSelectAllMatching ? (
+          <button
+            type="button"
+            onClick={onSelectAllMatching}
+            disabled={isLoading}
+            className={cn(
+              toolbarButtonClass,
+              'border-background/25 bg-transparent text-background hover:bg-background/10',
+            )}
+          >
+            Select All Matching ({totalMatchingCount.toLocaleString()})
+          </button>
+        ) : null}
 
         {safeActions.map(renderAction)}
       </div>
