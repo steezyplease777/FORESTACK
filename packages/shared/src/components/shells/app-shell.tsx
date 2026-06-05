@@ -16,6 +16,11 @@ export type AppShellProps = {
   insetHeader?: React.ReactNode;
   /** Scrollable main content inside the inset. */
   children: React.ReactNode;
+  /**
+   * Fixed overlays anchored to the inset column (e.g. scoped toasts).
+   * Rendered below `insetHeader`, sibling to the scroll region.
+   */
+  insetOverlay?: React.ReactNode;
   /** Siblings rendered after the main-shell column (e.g. right panels). */
   trailing?: React.ReactNode;
   /** Fixed overlays below the shell row (e.g. FABs). */
@@ -43,6 +48,7 @@ export function AppShell({
   sidebar,
   insetHeader,
   children,
+  insetOverlay,
   trailing,
   after,
   defaultSidebarOpen = true,
@@ -89,15 +95,18 @@ export function AppShell({
                   )}
                 >
                   {insetHeader}
-                  <div
-                    ref={insetScrollRef}
-                    data-slot="sidebar-inset-scroll"
-                    className={cn(
-                      "flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto",
-                      insetScrollClassName,
-                    )}
-                  >
-                    {children}
+                  <div className="relative flex min-h-0 flex-1 flex-col">
+                    <div
+                      ref={insetScrollRef}
+                      data-slot="sidebar-inset-scroll"
+                      className={cn(
+                        "flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto",
+                        insetScrollClassName,
+                      )}
+                    >
+                      {children}
+                    </div>
+                    {insetOverlay}
                   </div>
                 </SidebarInset>
               </div>

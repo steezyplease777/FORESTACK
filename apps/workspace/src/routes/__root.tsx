@@ -6,7 +6,6 @@ import {
   useParams,
 } from '@tanstack/react-router'
 import { AppDevtools } from '@/components/composites/app-devtools'
-import { Toaster } from '@/components/ui/sonner'
 
 import appCss from '@/styles.css?url'
 
@@ -59,12 +58,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-sans antialiased" suppressHydrationWarning>
         {children}
         {/*
-         * App-wide toast host.  Bottom-center keeps toasts clear of table
-         * toolbars and bulk-action bars; sonner portals above Radix Dialog
-         * overlays so they stay visible when a modal is open.  Consumers call
-         * `toast.success(…)` / `toast.error(…)` from `sonner`.
+         * Tenant toasts mount in `PortalShell` (`insetOverlay`) so they
+         * anchor to the sidebar-inset column, not the viewport. Public /
+         * auth routes do not call `toast()` today.
          */}
-        <Toaster position="bottom-center" richColors />
         <AppDevtools />
         <Scripts />
       </body>

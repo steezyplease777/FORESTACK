@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/shells/app-shell";
+import { Toaster } from "@/components/ui/sonner";
 import { PortalHeader } from "@/features/company/components/header/portal-header";
 import { PortalPageHeader } from "@/features/company/components/header/portal-page-header";
 import { PageBreadcrumbProvider } from "@/features/company/components/header/page-breadcrumb-context";
@@ -135,6 +136,7 @@ function PortalShellInner({
       sidebar={sidebar}
       header={<PortalHeader />}
       insetHeader={<PortalPageHeader />}
+      insetOverlay={<PortalInsetToaster />}
       mainShellRef={mainShellRef}
       mainShellProps={{
         "data-mystack-open": myStackOpen ? "true" : "false",
@@ -145,5 +147,22 @@ function PortalShellInner({
     >
       {insetContent}
     </AppShell>
+  );
+}
+
+/**
+ * Toast host scoped to the sidebar-inset column — bottom-center of the
+ * main content area, not the full viewport. Overrides sonner's default
+ * `position: fixed` so toasts stay right of the left rail and above the
+ * content footer (bulk-action bar, table chrome, etc.).
+ */
+function PortalInsetToaster() {
+  return (
+    <Toaster
+      position="bottom-center"
+      richColors
+      offset={16}
+      className="toaster group !absolute !z-[100] pointer-events-none [&_[data-button]]:pointer-events-auto [&_[data-close-button]]:pointer-events-auto"
+    />
   );
 }
