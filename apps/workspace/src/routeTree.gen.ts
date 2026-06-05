@@ -14,6 +14,7 @@ import { Route as CompanySlugLoginRouteImport } from './routes/$companySlug/logi
 import { Route as CompanySlugErrorRouteImport } from './routes/$companySlug/error'
 import { Route as CompanySlugAccessDeniedRouteImport } from './routes/$companySlug/access-denied'
 import { Route as CompanySlugAuthedRouteImport } from './routes/$companySlug/_authed'
+import { Route as CompanySlugAuthWorkosCallbackRouteImport } from './routes/$companySlug/auth/workos-callback'
 import { Route as CompanySlugAuthConfirmRouteImport } from './routes/$companySlug/auth/confirm'
 import { Route as CompanySlugAuthedAccountRouteImport } from './routes/$companySlug/_authed/account'
 import { Route as CompanySlugAuthedWmsRouteRouteImport } from './routes/$companySlug/_authed/wms/route'
@@ -82,6 +83,12 @@ const CompanySlugAuthedRoute = CompanySlugAuthedRouteImport.update({
   id: '/_authed',
   getParentRoute: () => CompanySlugRouteRoute,
 } as any)
+const CompanySlugAuthWorkosCallbackRoute =
+  CompanySlugAuthWorkosCallbackRouteImport.update({
+    id: '/auth/workos-callback',
+    path: '/auth/workos-callback',
+    getParentRoute: () => CompanySlugRouteRoute,
+  } as any)
 const CompanySlugAuthConfirmRoute = CompanySlugAuthConfirmRouteImport.update({
   id: '/auth/confirm',
   path: '/auth/confirm',
@@ -351,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/$companySlug/wms': typeof CompanySlugAuthedWmsRouteRouteWithChildren
   '/$companySlug/account': typeof CompanySlugAuthedAccountRoute
   '/$companySlug/auth/confirm': typeof CompanySlugAuthConfirmRoute
+  '/$companySlug/auth/workos-callback': typeof CompanySlugAuthWorkosCallbackRoute
   '/$companySlug/dashboard': typeof CompanySlugAuthedHomeDashboardRoute
   '/$companySlug/team': typeof CompanySlugAuthedHomeTeamRoute
   '/$companySlug/erp/allocation-requests': typeof CompanySlugAuthedErpAllocationRequestsRoute
@@ -394,6 +402,7 @@ export interface FileRoutesByTo {
   '/$companySlug/login': typeof CompanySlugLoginRoute
   '/$companySlug/account': typeof CompanySlugAuthedAccountRoute
   '/$companySlug/auth/confirm': typeof CompanySlugAuthConfirmRoute
+  '/$companySlug/auth/workos-callback': typeof CompanySlugAuthWorkosCallbackRoute
   '/$companySlug/dashboard': typeof CompanySlugAuthedHomeDashboardRoute
   '/$companySlug/team': typeof CompanySlugAuthedHomeTeamRoute
   '/$companySlug/erp/allocation-requests': typeof CompanySlugAuthedErpAllocationRequestsRoute
@@ -444,6 +453,7 @@ export interface FileRoutesById {
   '/$companySlug/_authed/wms': typeof CompanySlugAuthedWmsRouteRouteWithChildren
   '/$companySlug/_authed/account': typeof CompanySlugAuthedAccountRoute
   '/$companySlug/auth/confirm': typeof CompanySlugAuthConfirmRoute
+  '/$companySlug/auth/workos-callback': typeof CompanySlugAuthWorkosCallbackRoute
   '/$companySlug/_authed/_home/dashboard': typeof CompanySlugAuthedHomeDashboardRoute
   '/$companySlug/_authed/_home/team': typeof CompanySlugAuthedHomeTeamRoute
   '/$companySlug/_authed/erp/allocation-requests': typeof CompanySlugAuthedErpAllocationRequestsRoute
@@ -494,6 +504,7 @@ export interface FileRouteTypes {
     | '/$companySlug/wms'
     | '/$companySlug/account'
     | '/$companySlug/auth/confirm'
+    | '/$companySlug/auth/workos-callback'
     | '/$companySlug/dashboard'
     | '/$companySlug/team'
     | '/$companySlug/erp/allocation-requests'
@@ -537,6 +548,7 @@ export interface FileRouteTypes {
     | '/$companySlug/login'
     | '/$companySlug/account'
     | '/$companySlug/auth/confirm'
+    | '/$companySlug/auth/workos-callback'
     | '/$companySlug/dashboard'
     | '/$companySlug/team'
     | '/$companySlug/erp/allocation-requests'
@@ -586,6 +598,7 @@ export interface FileRouteTypes {
     | '/$companySlug/_authed/wms'
     | '/$companySlug/_authed/account'
     | '/$companySlug/auth/confirm'
+    | '/$companySlug/auth/workos-callback'
     | '/$companySlug/_authed/_home/dashboard'
     | '/$companySlug/_authed/_home/team'
     | '/$companySlug/_authed/erp/allocation-requests'
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/$companySlug'
       preLoaderRoute: typeof CompanySlugAuthedRouteImport
+      parentRoute: typeof CompanySlugRouteRoute
+    }
+    '/$companySlug/auth/workos-callback': {
+      id: '/$companySlug/auth/workos-callback'
+      path: '/auth/workos-callback'
+      fullPath: '/$companySlug/auth/workos-callback'
+      preLoaderRoute: typeof CompanySlugAuthWorkosCallbackRouteImport
       parentRoute: typeof CompanySlugRouteRoute
     }
     '/$companySlug/auth/confirm': {
@@ -1156,6 +1176,7 @@ interface CompanySlugRouteRouteChildren {
   CompanySlugErrorRoute: typeof CompanySlugErrorRoute
   CompanySlugLoginRoute: typeof CompanySlugLoginRoute
   CompanySlugAuthConfirmRoute: typeof CompanySlugAuthConfirmRoute
+  CompanySlugAuthWorkosCallbackRoute: typeof CompanySlugAuthWorkosCallbackRoute
 }
 
 const CompanySlugRouteRouteChildren: CompanySlugRouteRouteChildren = {
@@ -1164,6 +1185,7 @@ const CompanySlugRouteRouteChildren: CompanySlugRouteRouteChildren = {
   CompanySlugErrorRoute: CompanySlugErrorRoute,
   CompanySlugLoginRoute: CompanySlugLoginRoute,
   CompanySlugAuthConfirmRoute: CompanySlugAuthConfirmRoute,
+  CompanySlugAuthWorkosCallbackRoute: CompanySlugAuthWorkosCallbackRoute,
 }
 
 const CompanySlugRouteRouteWithChildren =

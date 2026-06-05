@@ -105,7 +105,7 @@ npm run lint | format | check
 
 **Routes** (`src/routes/$companySlug/`):
 
-- Public: `login`, `access-denied`, `auth/confirm`
+- Public: `login`, `access-denied`, `auth/confirm`, `auth/workos-callback`
 - `$companySlug/route.tsx` — company context loader (no auth redirect; public pages work)
 - `$companySlug/_authed/` — auth + membership gate
 - Modules under `_authed/`: `_home/` (dashboard, team), `wms/`, `crm/`, `erp/`, `plm/`, `pm/`, `account`
@@ -115,7 +115,8 @@ npm run lint | format | check
 - `pages/{module}/` — route-facing page components + per-module sidebars
 - `modules/` — reusable module UI (tables, forms, dashboard widgets)
 - `components/` — `portal-shell`, headers, nav, module-switcher, my-stack panel
-- `login-portal.tsx`, `tenant-provider.tsx`
+- `login-portal.tsx`, `auth/login-dispatcher.tsx`, `auth/workos-login-button.tsx`, `tenant-provider.tsx`
+- `lib/auth/workos/` — WorkOS AuthKit + Supabase Third-Party Auth stubs (see `docs/roadmap/workos-workspace-implementation-plan.md`)
 
 **Config** (`src/config/`):
 

@@ -297,7 +297,15 @@ Two independent Workers — one per app:
 | Home module (dashboard/team/…)    | done                                            |
 | PLM / CRM / WMS / ERP / PM routes | done (pages wired; data hooks reuse legacy Supabase hooks verbatim) |
 | Auth `/confirm` callback          | done (server fn exchanges code / OTP)           |
+| WorkOS tenant SSO scaffold        | stub (`apps/workspace/src/lib/auth/workos/`)    |
 | Final behavior parity verify      | TODO                                            |
+
+### WorkOS tenant SSO (workspace only)
+
+Studio stays on Supabase Auth. Per-org enterprise SSO for tenant portals is
+scaffolded under `apps/workspace/src/lib/auth/workos/` with compiling stubs.
+Implementation plan: `docs/roadmap/workos-workspace-implementation-plan.md`.
+Architecture: `docs/roadmap/split-auth-per-org-idp.md`.
 
 ## Next steps (for the next agent)
 

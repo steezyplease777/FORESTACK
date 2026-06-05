@@ -4,6 +4,10 @@ Status: **design / roadmap only**. Not implemented. The SaaS gate we already
 shipped (custom-claims-based `saas_orgs` on the access token) is a strict
 prerequisite for this work and is already live.
 
+**Workspace WorkOS scaffold:** see
+[workos-workspace-implementation-plan.md](./workos-workspace-implementation-plan.md)
+for AuthKit + Third-Party Auth integration steps and `apps/workspace` file layout.
+
 ## Why this exists
 
 Today every identity - SaaS owners, SaaS admins, company workers - lives in

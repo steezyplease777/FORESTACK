@@ -1,5 +1,5 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
-import { LoginForm } from '@/features/company/login-portal'
+import { LoginDispatcher } from '@/features/company/auth/login-dispatcher'
 
 const parentRoute = getRouteApi('/$companySlug')
 
@@ -9,8 +9,11 @@ export const Route = createFileRoute('/$companySlug/login')({
 
 function CompanyLoginPage() {
   const { company } = parentRoute.useLoaderData()
+  const { companySlug } = Route.useParams()
   const companyName = 'name' in company ? company.name : ''
   const companyLogo = 'logo_url' in company ? company.logo_url : null
+  const organizationId =
+    'organizationId' in company ? company.organizationId : ''
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2 bg-[#FFFFFF]">
@@ -31,7 +34,10 @@ function CompanyLoginPage() {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-md">
-            <LoginForm />
+            <LoginDispatcher
+              organizationId={organizationId}
+              companySlug={companySlug}
+            />
           </div>
         </div>
       </div>

@@ -20,6 +20,8 @@ export type {
   HandleWorkOSCallbackResult,
 } from '@/lib/auth/workos/handle-callback'
 
+export { buildWorkOsRedirectUri } from '@/lib/auth/workos/redirect-uri'
+
 export { resolveOrgIdpFn } from '@/lib/auth/workos/resolve-org-idp'
 export type { ResolvedOrgIdp } from '@/lib/auth/workos/resolve-org-idp'
 

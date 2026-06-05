@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/datasource/supabase/server'
+import { isWorkOsAuthEnabled } from '@/lib/auth/workos/config'
 
 export type TenantContext = {
   companyId: string
@@ -17,15 +18,56 @@ export type CompanyUserProfile = {
   profilePictureUrl: string | null
 }
 
-export async function requireCompanyAccess(
+/** External IdP identity for Third-Party Auth membership matching (Phase 2). */
+export type ExternalIdentity = {
+  subjectId: string
+  issuer: string
+}
+
+/**
+ * When `WORKOS_AUTH_ENABLED` is set, match company users by WorkOS JWT claims
+ * (`sub` + `iss`) instead of email. Requires `external_subject_id` and
+ * `external_issuer` columns on `app_company_users`.
+ *
+ * TODO (Phase 2): replace stub with a real query once schema migrates.
+ */
+async function requireCompanyAccessByExternalIdentity(
   companyId: string,
-  userEmail: string | null,
+  identity: ExternalIdentity,
   organizationId: string,
 ): Promise<{
   companyMembership?: TenantContext
   companyUser?: CompanyUserProfile
   error?: string
+} | null> {
+  if (!isWorkOsAuthEnabled()) return null
+
+  // Stub until columns exist — fall back to email matching.
+  void companyId
+  void identity
+  void organizationId
+  return null
+}
+
+export async function requireCompanyAccess(
+  companyId: string,
+  userEmail: string | null,
+  organizationId: string,
+  externalIdentity?: ExternalIdentity | null,
+): Promise<{
+  companyMembership?: TenantContext
+  companyUser?: CompanyUserProfile
+  error?: string
 }> {
+  if (externalIdentity) {
+    const byExternal = await requireCompanyAccessByExternalIdentity(
+      companyId,
+      externalIdentity,
+      organizationId,
+    )
+    if (byExternal) return byExternal
+  }
+
   if (!userEmail) return { error: 'No user email' }
 
   const supabase = createClient()
