@@ -55,7 +55,7 @@ export function PurchaseOrdersTable({
   return (
     <Table className="table-fixed">
       <TableHeader>
-        <TableRow className="hover:bg-transparent">
+        <TableRow>
           <TableHead className="w-[24%]">Order</TableHead>
           <TableHead className="w-[14%]">Supplier</TableHead>
           <TableHead className="w-[8%] text-right">Units</TableHead>

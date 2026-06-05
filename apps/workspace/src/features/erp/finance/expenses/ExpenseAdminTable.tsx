@@ -65,7 +65,7 @@ export function ExpenseAdminTable({
   return (
     <Table className="table-fixed">
       <TableHeader>
-        <TableRow className="hover:bg-transparent">
+        <TableRow>
           {config.columns.map((columnId) => {
             const label = COLUMN_LABELS[columnId]
             const sortable =

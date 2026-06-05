@@ -104,19 +104,17 @@ export function ExpensesPage() {
           }
         />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground tabular-nums">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
             {rows.length > 0 ? (
               <>
                 Showing{' '}
-                <span className="font-medium text-foreground">
+                <span className="tabular-nums">
                   {(page - 1) * pageSize + 1}–
                   {(page - 1) * pageSize + rows.length}
                 </span>{' '}
                 of{' '}
-                <span className="font-medium text-foreground">
-                  {total.toLocaleString()}
-                </span>
+                <span className="tabular-nums">{total.toLocaleString()}</span>
                 {qFromUrl ? ` · filtered by "${qFromUrl}"` : ''}
               </>
             ) : (
@@ -126,7 +124,7 @@ export function ExpensesPage() {
           <div className="relative">
             <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="h-8 w-56 pl-8"
+              className="h-8 w-64 pl-8"
               placeholder="Search expenses…"
               value={searchInput}
               onChange={(e) => {

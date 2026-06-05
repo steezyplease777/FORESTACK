@@ -127,12 +127,12 @@ export function PurchaseOrdersPage() {
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground tabular-nums">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
             {filtered.length > 0 ? (
               <>
                 Showing{' '}
-                <span className="font-medium text-foreground">
+                <span className="tabular-nums">
                   {filtered.length.toLocaleString()}
                 </span>{' '}
                 {filtered.length === 1 ? 'order' : 'orders'}
@@ -146,7 +146,7 @@ export function PurchaseOrdersPage() {
           <div className="relative">
             <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="h-8 w-56 pl-8"
+              className="h-8 w-64 pl-8"
               placeholder="Search orders…"
               value={searchInput}
               onChange={(e) => {
