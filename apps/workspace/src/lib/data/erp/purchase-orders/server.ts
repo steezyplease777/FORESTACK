@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { createServerFn } from '@tanstack/react-start'
 
-import { requireAuthedSupabase } from '@/lib/data/_shared/auth'
+import { requireTenantSupabase } from '@/lib/data/_shared/tenant-supabase'
 
 import type {
   CreatePurchaseOrderInput,
@@ -13,7 +13,7 @@ import type {
 } from './types'
 
 async function upsertPOLines(
-  supabase: Awaited<ReturnType<typeof requireAuthedSupabase>>['supabase'],
+  supabase: Awaited<ReturnType<typeof requireTenantSupabase>>['supabase'],
   poId: string,
   lines: POLineInput[],
 ) {
@@ -85,7 +85,7 @@ async function upsertPOLines(
 export const createPurchaseOrderFn = createServerFn({ method: 'POST' })
   .inputValidator((data: CreatePurchaseOrderInput) => data)
   .handler(async ({ data }): Promise<string> => {
-    const { supabase } = await requireAuthedSupabase()
+    const { supabase } = await requireTenantSupabase()
     const { data: po, error } = await supabase
       .from('erp_purchase_orders')
       .insert({
@@ -113,7 +113,7 @@ export const updatePurchaseOrderFn = createServerFn({ method: 'POST' })
     (data: { poId: string; patch: Partial<CreatePurchaseOrderInput> }) => data,
   )
   .handler(async ({ data }): Promise<void> => {
-    const { supabase } = await requireAuthedSupabase()
+    const { supabase } = await requireTenantSupabase()
     const { poId, patch } = data
     const { lines, company_id, ...header } = patch
 
@@ -131,7 +131,7 @@ export const updatePurchaseOrderFn = createServerFn({ method: 'POST' })
 export const getPurchaseOrders = createServerFn({ method: 'GET' })
   .inputValidator((data: { companyId: string }) => data)
   .handler(async ({ data }): Promise<PurchaseOrderWithVendor[]> => {
-    const { supabase } = await requireAuthedSupabase()
+    const { supabase } = await requireTenantSupabase()
     const { data: rows, error } = await supabase
       .from('erp_purchase_orders')
       .select(
@@ -168,7 +168,7 @@ export const getPurchaseOrders = createServerFn({ method: 'GET' })
 export const getPurchaseOrder = createServerFn({ method: 'GET' })
   .inputValidator((data: { purchaseOrderId: string }) => data)
   .handler(async ({ data }): Promise<PurchaseOrderDetail | null> => {
-    const { supabase } = await requireAuthedSupabase()
+    const { supabase } = await requireTenantSupabase()
     const { data: po, error } = await supabase
       .from('erp_purchase_orders')
       .select(`*, vendor_id (*)`)
