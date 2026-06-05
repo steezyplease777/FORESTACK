@@ -30,8 +30,6 @@ export function WorkOSLoginButton({
     setLoading(true)
     setError(null)
     try {
-      const origin =
-        typeof window !== 'undefined' ? window.location.origin : ''
       const redirectUri = buildWorkOsRedirectUri(
         companySlug,
         typeof window !== 'undefined' ? window.location.host : undefined,
@@ -41,7 +39,7 @@ export function WorkOSLoginButton({
       const { url } = await getWorkOSAuthorizationUrlFn({
         data: {
           companySlug,
-          redirectUri: origin ? `${origin}/auth/workos-callback` : redirectUri,
+          redirectUri,
           state,
           workosOrganizationId: connection.workosOrganizationId,
           connectionId: connection.connectionId,

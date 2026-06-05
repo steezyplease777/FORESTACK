@@ -4,6 +4,7 @@ import {
   requireWorkOsEnv,
   workOsApiOrigin,
 } from '@/lib/auth/workos/config'
+import { setWorkOsAccessTokenCookie } from '@/lib/auth/workos/session-cookie.server'
 import type { WorkOSTokenResponse } from '@/lib/auth/workos/types'
 
 export type HandleWorkOSCallbackInput = {
@@ -13,12 +14,8 @@ export type HandleWorkOSCallbackInput = {
 
 export type HandleWorkOSCallbackResult = {
   tokens: WorkOSTokenResponse
-  /**
-   * TODO (Phase 1): persist `accessToken` in an httpOnly cookie and wire
-   * `createClient({ accessToken })` for SSR. Third-Party Auth does not use
-   * `supabase.auth.setSession` with Supabase-issued refresh tokens.
-   */
-  sessionEstablished: false
+  /** True when the WorkOS access token was stored in an httpOnly cookie. */
+  sessionEstablished: boolean
 }
 
 /**
@@ -64,12 +61,14 @@ export const handleWorkOSCallbackFn = createServerFn({ method: 'POST' })
       throw new Error('WorkOS token exchange returned no access_token')
     }
 
+    setWorkOsAccessTokenCookie(accessToken)
+
     return {
       tokens: {
         accessToken,
         refreshToken: json.refresh_token,
         userId: json.user?.id,
       },
-      sessionEstablished: false,
+      sessionEstablished: true,
     }
   })

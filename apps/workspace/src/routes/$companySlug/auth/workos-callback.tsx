@@ -2,7 +2,9 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 
 import { handleWorkOSCallbackFn } from '@/lib/auth/workos'
+import { jitLinkWorkOsCompanyUser } from '@/lib/auth/workos/jit-link'
 import { buildWorkOsRedirectUri } from '@/lib/auth/workos/redirect-uri'
+import { resolveCompanyBySlug } from '@/lib/providers/tenant'
 import { safeRelativeRedirectPath } from '@/lib/utils/safe-redirect'
 import { WorkOSNotConfiguredError } from '@/lib/auth/workos/types'
 
@@ -64,8 +66,15 @@ const processCallback = createServerFn({ method: 'GET' })
         data: { code: data.code, redirectUri },
       })
 
-      // TODO (Phase 1): persist result.tokens and establish SSR session.
-      void result
+      if (result.sessionEstablished && result.tokens.accessToken) {
+        const company = await resolveCompanyBySlug(data.companySlug)
+        if ('companyId' in company && company.companyId) {
+          await jitLinkWorkOsCompanyUser({
+            companyId: company.companyId,
+            accessToken: result.tokens.accessToken,
+          })
+        }
+      }
 
       const decoded = decodeOAuthState(data.state)
       const next = decoded?.next ?? '/'
