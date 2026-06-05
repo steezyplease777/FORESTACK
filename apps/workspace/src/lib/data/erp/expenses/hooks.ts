@@ -15,7 +15,11 @@ import {
 
 import { invalidateErpExpenses } from './mutations'
 import {
+  erpExpenseCategoriesQuery,
+  erpExpenseDepartmentsQuery,
+  erpExpenseProjectsQuery,
   erpExpenseStatusesQuery,
+  erpExpenseTagsQuery,
   erpExpensesListQuery,
   type UseExpensesOptions,
 } from './queries'
@@ -53,6 +57,14 @@ export function useExpenses(companyId: string, options: UseExpensesOptions = {})
     pageSize,
     q,
     options.statusId,
+    options.categoryIds,
+    options.projectIds,
+    options.departmentValues,
+    options.tagIds,
+    options.amountMin,
+    options.amountMax,
+    options.dateFrom,
+    options.dateTo,
     options.sortColumn,
     options.sortDirection,
     pageCount,
@@ -67,6 +79,38 @@ export function useExpenses(companyId: string, options: UseExpensesOptions = {})
 export function useExpenseStatuses(companyId: string) {
   return useQuery<ExpenseStatus[]>({
     ...erpExpenseStatusesQuery(companyId),
+    enabled: !!companyId,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useExpenseCategories(companyId: string) {
+  return useQuery({
+    ...erpExpenseCategoriesQuery(companyId),
+    enabled: !!companyId,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useExpenseTags(companyId: string) {
+  return useQuery({
+    ...erpExpenseTagsQuery(companyId),
+    enabled: !!companyId,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useExpenseProjectOptions(companyId: string) {
+  return useQuery({
+    ...erpExpenseProjectsQuery(companyId),
+    enabled: !!companyId,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useExpenseDepartmentOptions(companyId: string) {
+  return useQuery({
+    ...erpExpenseDepartmentsQuery(companyId),
     enabled: !!companyId,
     placeholderData: keepPreviousData,
   })

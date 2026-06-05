@@ -18,8 +18,14 @@ import {
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { AmountCell } from './cells/AmountCell'
+import { CategoryCell } from './cells/CategoryCell'
+import { DateCell } from './cells/DateCell'
+import { DocumentsCell } from './cells/DocumentsCell'
+import { PaymentTypeCell } from './cells/PaymentTypeCell'
 import { StatusCell } from './cells/StatusCell'
+import { TagsCell } from './cells/TagsCell'
 import { TitleCell } from './cells/TitleCell'
+import { VendorCell } from './cells/VendorCell'
 import {
   formatExpenseAmount,
   formatExpenseDate,
@@ -28,6 +34,7 @@ import type {
   ExpenseAdminTableProps,
   ExpenseRow,
   ExpenseTableColumnId,
+  ExpenseTableConfig,
 } from './ExpenseAdminTable.types'
 
 const COLUMN_LABELS: Record<ExpenseTableColumnId, string> = {
@@ -39,17 +46,33 @@ const COLUMN_LABELS: Record<ExpenseTableColumnId, string> = {
   submittedAt: 'Submitted',
   department: 'Department',
   relatedProject: 'Project',
+  invoiceTags: 'Tags',
+  documents: 'Documents',
+  paymentType: 'Payment type',
+  invoiceDate: 'Invoice date',
 }
 
 const COLUMN_WIDTHS: Partial<Record<ExpenseTableColumnId, string>> = {
-  title: 'w-[30%]',
-  status: 'w-[12%]',
-  amount: 'w-[10%]',
-  vendor: 'w-[16%]',
-  expenseCategory: 'w-[14%]',
-  submittedAt: 'w-[12%]',
-  department: 'w-[12%]',
-  relatedProject: 'w-[14%]',
+  title: 'w-[24%]',
+  status: 'w-[11%]',
+  amount: 'w-[9%]',
+  vendor: 'w-[12%]',
+  expenseCategory: 'w-[11%]',
+  submittedAt: 'w-[9%]',
+  department: 'w-[10%]',
+  relatedProject: 'w-[11%]',
+  invoiceTags: 'w-[10%]',
+  documents: 'w-[9%]',
+  paymentType: 'w-[10%]',
+  invoiceDate: 'w-[9%]',
+}
+
+const SORTABLE_COLUMN_MAP: Partial<
+  Record<ExpenseTableColumnId, 'created_at' | 'title' | 'amount'>
+> = {
+  title: 'title',
+  amount: 'amount',
+  submittedAt: 'created_at',
 }
 
 export function ExpenseAdminTable({
@@ -62,27 +85,27 @@ export function ExpenseAdminTable({
   onSortChange,
   readOnly,
 }: ExpenseAdminTableProps) {
+  const columns = config.columns
+
   return (
     <Table className="table-fixed">
       <TableHeader>
         <TableRow>
-          {config.columns.map((columnId) => {
+          {columns.map((columnId) => {
             const label = COLUMN_LABELS[columnId]
-            const sortable =
-              columnId === 'title' ||
-              columnId === 'amount' ||
-              columnId === 'submittedAt'
+            const sortable = config.sortableColumns.includes(columnId)
             const alignRight = columnId === 'amount'
+            const resolvedSort = SORTABLE_COLUMN_MAP[columnId]
 
             return (
               <TableHead
                 key={columnId}
                 className={`${COLUMN_WIDTHS[columnId] ?? ''} ${alignRight ? 'text-right' : ''}`}
               >
-                {sortable ? (
+                {sortable && resolvedSort ? (
                   <SortableHeader
                     label={label}
-                    columnId={columnId}
+                    resolvedSort={resolvedSort}
                     sortColumn={sortColumn}
                     sortDirection={sortDirection}
                     onSortChange={onSortChange}
@@ -99,7 +122,7 @@ export function ExpenseAdminTable({
       <TableBody>
         {rows.map((row) => (
           <TableRow key={row.id} className="group h-16">
-            {config.columns.map((columnId) => (
+            {columns.map((columnId) => (
               <TableCell
                 key={columnId}
                 className={columnId === 'amount' ? 'text-right' : undefined}
@@ -109,6 +132,7 @@ export function ExpenseAdminTable({
                   row={row}
                   companyId={companyId}
                   statuses={statuses}
+                  config={config}
                   readOnly={readOnly}
                 />
               </TableCell>
@@ -125,12 +149,14 @@ function ExpenseCell({
   row,
   companyId,
   statuses,
+  config,
   readOnly,
 }: {
   columnId: ExpenseTableColumnId
   row: ExpenseRow
   companyId: string
   statuses: ExpenseStatus[]
+  config: ExpenseTableConfig
   readOnly?: boolean
 }) {
   switch (columnId) {
@@ -144,6 +170,7 @@ function ExpenseCell({
           row={row}
           companyId={companyId}
           statuses={statuses}
+          statusColors={config.statusColors}
           readOnly={readOnly}
         />
       )
@@ -153,15 +180,11 @@ function ExpenseCell({
       )
     case 'vendor':
       return (
-        <span className="truncate text-sm">{row.vendor || '—'}</span>
+        <VendorCell row={row} companyId={companyId} readOnly={readOnly} />
       )
     case 'expenseCategory':
-      return row.expenseCategory ? (
-        <span className="truncate text-xs text-muted-foreground">
-          {row.expenseCategory}
-        </span>
-      ) : (
-        <span className="text-xs text-muted-foreground">—</span>
+      return (
+        <CategoryCell row={row} companyId={companyId} readOnly={readOnly} />
       )
     case 'department':
       return (
@@ -175,12 +198,21 @@ function ExpenseCell({
           {row.relatedProject || '—'}
         </span>
       )
-    case 'submittedAt':
+    case 'invoiceTags':
+      return <TagsCell row={row} />
+    case 'documents':
+      return <DocumentsCell row={row} />
+    case 'paymentType':
       return (
-        <span className="text-xs text-muted-foreground">
-          {formatExpenseDate(row.submittedAt)}
-        </span>
+        <PaymentTypeCell
+          label={row.paymentType}
+          colors={config.paymentTypeColors}
+        />
       )
+    case 'invoiceDate':
+      return <DateCell value={row.invoiceDate} />
+    case 'submittedAt':
+      return <DateCell value={row.submittedAt} />
     default:
       return '—'
   }
@@ -188,36 +220,27 @@ function ExpenseCell({
 
 function SortableHeader({
   label,
-  columnId,
+  resolvedSort,
   sortColumn,
   sortDirection,
   onSortChange,
   alignRight,
 }: {
   label: string
-  columnId: ExpenseTableColumnId
+  resolvedSort: 'created_at' | 'title' | 'amount'
   sortColumn: ExpenseAdminTableProps['sortColumn']
   sortDirection: ExpenseAdminTableProps['sortDirection']
   onSortChange: ExpenseAdminTableProps['onSortChange']
   alignRight?: boolean
 }) {
-  const resolved =
-    columnId === 'submittedAt'
-      ? 'created_at'
-      : columnId === 'title' || columnId === 'amount'
-        ? columnId
-        : null
-
-  if (!resolved) return label
-
-  const active = sortColumn === resolved
+  const active = sortColumn === resolvedSort
   const nextDir = active && sortDirection === 'desc' ? 'asc' : 'desc'
 
   return (
     <button
       type="button"
       className={`inline-flex items-center gap-1 ${alignRight ? 'ml-auto' : ''}`}
-      onClick={() => onSortChange(resolved, nextDir)}
+      onClick={() => onSortChange(resolvedSort, nextDir)}
     >
       {label}
       {active ? (
@@ -233,4 +256,4 @@ function SortableHeader({
   )
 }
 
-export { formatExpenseAmount }
+export { formatExpenseAmount, formatExpenseDate }

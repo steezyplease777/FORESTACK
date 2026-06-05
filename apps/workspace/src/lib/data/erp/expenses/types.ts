@@ -16,6 +16,18 @@ export type ExpenseCategory = {
   internal_code: string | null
 }
 
+export type ExpenseTag = {
+  id: string
+  name: string
+  company_id: string
+}
+
+export type ExpenseProjectOption = {
+  id: string
+  name: string
+  project_code: string | null
+}
+
 export type ExpenseProjectLink = {
   project_id: string
   project: { id: string; name: string; project_code: string | null } | null
@@ -57,6 +69,14 @@ export type ExpenseListParams = {
   pageSize?: number
   q?: string
   statusId?: string
+  categoryIds?: string[]
+  projectIds?: string[]
+  departmentValues?: string[]
+  tagIds?: string[]
+  amountMin?: number
+  amountMax?: number
+  dateFrom?: string
+  dateTo?: string
   sortColumn?: 'created_at' | 'title' | 'amount'
   sortDirection?: 'asc' | 'desc'
 }
@@ -65,4 +85,6 @@ export type ExpenseUpdatePatch = {
   title?: string
   amount?: number | null
   status_id?: string | null
+  vendor_id?: string | null
+  category_id?: string | null
 }

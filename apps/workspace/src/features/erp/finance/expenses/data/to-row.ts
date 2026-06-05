@@ -7,7 +7,10 @@ const toTitleCase = (input: string): string =>
     .toLowerCase()
     .replace(/([^\s\-/&(.]+)/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))
 
-export function toExpenseRow(rec: ExpenseRecord): ExpenseRow {
+export function toExpenseRow(
+  rec: ExpenseRecord,
+  tagsById?: Map<string, string>,
+): ExpenseRow {
   const attrs =
     rec.attributes && typeof rec.attributes === 'object'
       ? rec.attributes
@@ -24,12 +27,23 @@ export function toExpenseRow(rec: ExpenseRecord): ExpenseRow {
   const expenseProjects = Array.isArray(rec.expense_projects)
     ? rec.expense_projects
     : []
-  const projectLabels = expenseProjects
-    .map((ep) => toTitleCase(String(ep.project?.name ?? '')))
-    .filter(Boolean)
+  const projectEntries = expenseProjects
+    .map((ep) => ({
+      id: ep.project_id || ep.project?.id || '',
+      label: toTitleCase(String(ep.project?.name ?? '')),
+    }))
+    .filter((e) => e.id)
+
+  const tagIds: string[] = Array.isArray(rec.tags) ? rec.tags.map(String) : []
+  const tagEntries = tagIds.map((id) => ({
+    id,
+    label: toTitleCase(tagsById?.get(id) ?? ''),
+  }))
 
   const departmentStr =
     typeof attrs.department === 'string' ? attrs.department : ''
+
+  const documents = Array.isArray(rec.documents) ? rec.documents : []
 
   return {
     id: rec.id,
@@ -40,10 +54,24 @@ export function toExpenseRow(rec: ExpenseRecord): ExpenseRow {
     statusColor: rec.status?.color ?? null,
     amount: Number.isFinite(amountNum) ? amountNum : null,
     vendor: rec.vendor?.name ?? '',
+    vendorId: rec.vendor_id ?? rec.vendor?.id ?? null,
     expenseCategory: toTitleCase(rec.category?.name ?? ''),
+    expenseCategoryId: rec.category_id ?? rec.category?.id ?? null,
     department: toTitleCase(departmentStr),
-    relatedProject: projectLabels.join(', '),
+    departmentValue: departmentStr || null,
+    relatedProject: projectEntries.map((e) => e.label).filter(Boolean).join(', '),
+    relatedProjectIds: projectEntries.map((e) => e.id),
+    invoiceTags: tagEntries,
+    invoiceTagsDisplay: tagEntries
+      .map((e) => e.label)
+      .filter(Boolean)
+      .join(', '),
+    paymentType:
+      typeof attrs.payment_type === 'string' ? attrs.payment_type : '',
+    invoiceDate:
+      typeof attrs.invoice_date === 'string' ? attrs.invoice_date : '',
     submittedAt: rec.created_at ?? '',
+    documents,
   }
 }
 

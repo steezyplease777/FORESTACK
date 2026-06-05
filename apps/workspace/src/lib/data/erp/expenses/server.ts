@@ -10,9 +10,12 @@ import {
 import { requireTenantSupabase } from '@/lib/data/_shared/tenant-supabase'
 
 import type {
+  ExpenseCategory,
   ExpenseListParams,
+  ExpenseProjectOption,
   ExpenseRecord,
   ExpenseStatus,
+  ExpenseTag,
   ExpenseUpdatePatch,
 } from './types'
 
@@ -64,6 +67,53 @@ export const getExpenses = createServerFn({ method: 'GET' })
       query = query.eq('status_id', data.statusId)
     }
 
+    if (data.categoryIds?.length) {
+      query = query.in('category_id', data.categoryIds)
+    }
+
+    if (data.departmentValues?.length) {
+      query = query.in('attributes->>department', data.departmentValues)
+    }
+
+    if (data.amountMin != null && Number.isFinite(data.amountMin)) {
+      query = query.gte('amount', data.amountMin)
+    }
+
+    if (data.amountMax != null && Number.isFinite(data.amountMax)) {
+      query = query.lte('amount', data.amountMax)
+    }
+
+    if (data.dateFrom) {
+      query = query.gte('created_at', `${data.dateFrom}T00:00:00`)
+    }
+
+    if (data.dateTo) {
+      query = query.lte('created_at', `${data.dateTo}T23:59:59.999`)
+    }
+
+    if (data.tagIds?.length) {
+      query = query.overlaps('tags', data.tagIds)
+    }
+
+    if (data.projectIds?.length) {
+      const { data: junctionRows, error: junctionError } = await supabase
+        .from('erp_expense_projects')
+        .select('expense_id')
+        .in('project_id', data.projectIds)
+      if (junctionError) throw new Error(junctionError.message)
+      const expenseIds = [
+        ...new Set(
+          (junctionRows ?? [])
+            .map((r) => r.expense_id as string)
+            .filter(Boolean),
+        ),
+      ]
+      if (expenseIds.length === 0) {
+        return { rows: [], total: 0, page, pageSize }
+      }
+      query = query.in('id', expenseIds)
+    }
+
     const { data: rows, count, error } = await query
       .order(sortColumn, { ascending, nullsFirst: false })
       .range(from, to)
@@ -89,6 +139,66 @@ export const getExpenseStatuses = createServerFn({ method: 'GET' })
       .order('name')
     if (error) throw new Error(error.message)
     return (rows ?? []) as ExpenseStatus[]
+  })
+
+export const getExpenseCategories = createServerFn({ method: 'GET' })
+  .inputValidator((data: { companyId: string }) => data)
+  .handler(async ({ data }): Promise<ExpenseCategory[]> => {
+    const { supabase } = await requireTenantSupabase()
+    const { data: rows, error } = await supabase
+      .from('erp_expense_categories')
+      .select('id,name,internal_code')
+      .eq('company_id', data.companyId)
+      .order('name')
+    if (error) throw new Error(error.message)
+    return (rows ?? []) as ExpenseCategory[]
+  })
+
+export const getExpenseTags = createServerFn({ method: 'GET' })
+  .inputValidator((data: { companyId: string }) => data)
+  .handler(async ({ data }): Promise<ExpenseTag[]> => {
+    const { supabase } = await requireTenantSupabase()
+    const { data: rows, error } = await supabase
+      .from('erp_expense_tags')
+      .select('id,name,company_id')
+      .eq('company_id', data.companyId)
+      .order('name')
+    if (error) throw new Error(error.message)
+    return (rows ?? []) as ExpenseTag[]
+  })
+
+export const getExpenseProjectOptions = createServerFn({ method: 'GET' })
+  .inputValidator((data: { companyId: string }) => data)
+  .handler(async ({ data }): Promise<ExpenseProjectOption[]> => {
+    const { supabase } = await requireTenantSupabase()
+    const { data: rows, error } = await supabase
+      .from('pm_projects')
+      .select('id,name,project_code')
+      .eq('company_id', data.companyId)
+      .order('name')
+      .limit(500)
+    if (error) throw new Error(error.message)
+    return (rows ?? []) as ExpenseProjectOption[]
+  })
+
+export const getExpenseDepartmentOptions = createServerFn({ method: 'GET' })
+  .inputValidator((data: { companyId: string }) => data)
+  .handler(async ({ data }): Promise<string[]> => {
+    const { supabase } = await requireTenantSupabase()
+    const { data: rows, error } = await supabase
+      .from('erp_expenses')
+      .select('attributes')
+      .eq('company_id', data.companyId)
+      .not('attributes->>department', 'is', null)
+      .limit(2000)
+    if (error) throw new Error(error.message)
+    const values = new Set<string>()
+    for (const row of rows ?? []) {
+      const attrs = row.attributes as Record<string, unknown> | null
+      const dept = attrs?.department
+      if (typeof dept === 'string' && dept.trim()) values.add(dept.trim())
+    }
+    return [...values].sort((a, b) => a.localeCompare(b))
   })
 
 export const updateExpenseFn = createServerFn({ method: 'POST' })

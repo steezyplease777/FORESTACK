@@ -9,7 +9,14 @@ import {
 } from '@/lib/data/_shared/pagination'
 
 import { expenseKeys } from './keys'
-import { getExpenseStatuses, getExpenses } from './server'
+import {
+  getExpenseCategories,
+  getExpenseDepartmentOptions,
+  getExpenseProjectOptions,
+  getExpenseStatuses,
+  getExpenseTags,
+  getExpenses,
+} from './server'
 import type { ExpenseListParams, ExpenseRecord, ExpenseStatus } from './types'
 
 export type UseExpensesOptions = Omit<ExpenseListParams, 'companyId'>
@@ -25,7 +32,22 @@ export function erpExpensesListQuery(
   const sortColumn = options.sortColumn ?? 'created_at'
   const sortDirection = options.sortDirection ?? 'desc'
 
-  const params = { page, pageSize, q, statusId, sortColumn, sortDirection }
+  const params = {
+    page,
+    pageSize,
+    q,
+    statusId,
+    categoryIds: options.categoryIds,
+    projectIds: options.projectIds,
+    departmentValues: options.departmentValues,
+    tagIds: options.tagIds,
+    amountMin: options.amountMin,
+    amountMax: options.amountMax,
+    dateFrom: options.dateFrom,
+    dateTo: options.dateTo,
+    sortColumn,
+    sortDirection,
+  }
 
   return {
     queryKey: expenseKeys.list(companyId, params),
@@ -47,5 +69,37 @@ export function erpExpenseStatusesQuery(companyId: string) {
     queryKey: ReturnType<typeof expenseKeys.statuses>
     queryFn: () => Promise<ExpenseStatus[]>
     staleTime: number
+  }
+}
+
+export function erpExpenseCategoriesQuery(companyId: string) {
+  return {
+    queryKey: expenseKeys.categories(companyId),
+    queryFn: () => getExpenseCategories({ data: { companyId } }),
+    staleTime: DEFAULT_REFERENCE_STALE_TIME,
+  }
+}
+
+export function erpExpenseTagsQuery(companyId: string) {
+  return {
+    queryKey: expenseKeys.tags(companyId),
+    queryFn: () => getExpenseTags({ data: { companyId } }),
+    staleTime: DEFAULT_REFERENCE_STALE_TIME,
+  }
+}
+
+export function erpExpenseProjectsQuery(companyId: string) {
+  return {
+    queryKey: expenseKeys.projects(companyId),
+    queryFn: () => getExpenseProjectOptions({ data: { companyId } }),
+    staleTime: DEFAULT_REFERENCE_STALE_TIME,
+  }
+}
+
+export function erpExpenseDepartmentsQuery(companyId: string) {
+  return {
+    queryKey: expenseKeys.departments(companyId),
+    queryFn: () => getExpenseDepartmentOptions({ data: { companyId } }),
+    staleTime: DEFAULT_REFERENCE_STALE_TIME,
   }
 }

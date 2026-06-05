@@ -17,27 +17,34 @@ import { ExpenseAdminTable } from '@/features/erp/finance/expenses/ExpenseAdminT
 import { DEFAULT_EXPENSE_TABLE_CONFIG } from '@/features/erp/finance/expenses/config/default-expense-table.config'
 import { ExpenseTableToolbar } from '@/features/erp/finance/expenses/filters/ExpenseTableToolbar'
 import { buildExpenseQueryParams } from '@/features/erp/finance/expenses/data/query-builder'
+import {
+  filtersFromSearch,
+  filtersToSearchPatch,
+} from '@/features/erp/finance/expenses/data/search-params'
 import { toExpenseRow } from '@/features/erp/finance/expenses/data/to-row'
 import {
   useExpenseStatuses,
+  useExpenseTags,
   useExpenses,
 } from '@/features/erp/finance/expenses/data/use-expenses-query'
-
 const routeApi = getRouteApi('/$companySlug/_authed/erp/finance/expenses/')
 
 export function ExpensesPage() {
   const { company } = useCompany()
   const companyId = company?.companyId ?? ''
 
+  const search = routeApi.useSearch()
+  const navigate = routeApi.useNavigate()
+
   const {
     q: qFromUrl,
     page,
     pageSize,
-    statusId,
     sort,
     dir,
-  } = routeApi.useSearch()
-  const navigate = routeApi.useNavigate()
+  } = search
+
+  const filters = React.useMemo(() => filtersFromSearch(search), [search])
 
   const [searchInput, setSearchInput] = React.useState(qFromUrl)
   React.useEffect(() => {
@@ -54,7 +61,6 @@ export function ExpensesPage() {
     { wait: 250 },
   )
 
-  const filters = { q: qFromUrl, statusId }
   const queryParams = buildExpenseQueryParams(filters, sort, dir)
   const expensesQuery = useExpenses(companyId, {
     page,
@@ -62,12 +68,21 @@ export function ExpensesPage() {
     ...queryParams,
   })
   const statusesQuery = useExpenseStatuses(companyId)
+  const tagsQuery = useExpenseTags(companyId)
   const statuses = statusesQuery.data ?? []
+
+  const tagsById = React.useMemo(() => {
+    const map = new Map<string, string>()
+    for (const tag of tagsQuery.data ?? []) {
+      map.set(tag.id, tag.name)
+    }
+    return map
+  }, [tagsQuery.data])
 
   const result = expensesQuery.data
   const rows = React.useMemo(
-    () => (result?.rows ?? []).map(toExpenseRow),
-    [result?.rows],
+    () => (result?.rows ?? []).map((rec) => toExpenseRow(rec, tagsById)),
+    [result?.rows, tagsById],
   )
   const total = result?.total ?? 0
   const pageCount = totalPages(total, pageSize)
@@ -76,6 +91,28 @@ export function ExpensesPage() {
 
   const setPage = (next: number) =>
     navigate({ search: (prev) => ({ ...prev, page: next }) })
+
+  const applyFilters = (nextFilters: typeof filters) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        ...filtersToSearchPatch(nextFilters),
+        page: 1,
+      }),
+    })
+  }
+
+  const hasActiveFilters =
+    !!filters.statusId ||
+    !!filters.q ||
+    filters.categoryIds.length > 0 ||
+    filters.projectIds.length > 0 ||
+    filters.departmentValues.length > 0 ||
+    filters.tagIds.length > 0 ||
+    !!filters.amountMin ||
+    !!filters.amountMax ||
+    !!filters.dateFrom ||
+    !!filters.dateTo
 
   return (
     <div className="flex flex-col gap-6 p-4 lg:p-6">
@@ -93,13 +130,23 @@ export function ExpensesPage() {
           companyId={companyId}
           filters={filters}
           statuses={statuses}
+          sortColumn={sort}
+          sortDirection={dir}
           onStatusChange={(nextStatusId) =>
-            navigate({
-              search: (prev) => ({
-                ...prev,
-                statusId: nextStatusId,
-                page: 1,
-              }),
+            applyFilters({ ...filters, statusId: nextStatusId })
+          }
+          onFiltersChange={applyFilters}
+          onClearStructuredFilters={() =>
+            applyFilters({
+              ...filters,
+              categoryIds: [],
+              projectIds: [],
+              departmentValues: [],
+              tagIds: [],
+              amountMin: '',
+              amountMax: '',
+              dateFrom: null,
+              dateTo: null,
             })
           }
         />
@@ -152,7 +199,7 @@ export function ExpensesPage() {
           <EmptyState
             title="No expenses found"
             description={
-              qFromUrl || statusId
+              hasActiveFilters
                 ? 'Try adjusting your filters.'
                 : 'Expenses will appear here once created.'
             }

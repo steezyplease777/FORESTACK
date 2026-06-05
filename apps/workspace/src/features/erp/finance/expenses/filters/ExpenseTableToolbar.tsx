@@ -7,22 +7,32 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { erpExpensesListQuery } from '@/lib/data/erp/expenses/queries'
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
+import { buildExpenseQueryParams } from '../data/query-builder'
 import type { ActiveFilters } from '../ExpenseAdminTable.types'
+import { ExpenseStructuredFilters } from './ExpenseStructuredFilters'
 
 type ExpenseTableToolbarProps = {
   companyId: string
   filters: ActiveFilters
   statuses: ExpenseStatus[]
+  sortColumn: 'created_at' | 'title' | 'amount'
+  sortDirection: 'asc' | 'desc'
   onStatusChange: (statusId: string | undefined) => void
+  onFiltersChange: (filters: ActiveFilters) => void
+  onClearStructuredFilters: () => void
 }
 
 function useExpenseStatusCounts(
   companyId: string,
   statuses: ExpenseStatus[],
-  q: string,
+  filters: ActiveFilters,
+  sortColumn: ExpenseTableToolbarProps['sortColumn'],
+  sortDirection: ExpenseTableToolbarProps['sortDirection'],
 ) {
+  const baseParams = buildExpenseQueryParams(filters, sortColumn, sortDirection)
+
   const allQuery = useQuery({
-    ...erpExpensesListQuery(companyId, { page: 1, pageSize: 1, q }),
+    ...erpExpensesListQuery(companyId, { page: 1, pageSize: 1, ...baseParams, statusId: undefined }),
     enabled: !!companyId,
     select: (data) => data.total,
     staleTime: 30_000,
@@ -33,7 +43,7 @@ function useExpenseStatusCounts(
       ...erpExpensesListQuery(companyId, {
         page: 1,
         pageSize: 1,
-        q,
+        ...baseParams,
         statusId: status.id,
       }),
       enabled: !!companyId,
@@ -57,34 +67,53 @@ export function ExpenseTableToolbar({
   companyId,
   filters,
   statuses,
+  sortColumn,
+  sortDirection,
   onStatusChange,
+  onFiltersChange,
+  onClearStructuredFilters,
 }: ExpenseTableToolbarProps) {
-  const counts = useExpenseStatusCounts(companyId, statuses, filters.q)
+  const counts = useExpenseStatusCounts(
+    companyId,
+    statuses,
+    filters,
+    sortColumn,
+    sortDirection,
+  )
   const activeTab = filters.statusId ?? 'all'
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(value) =>
-        onStatusChange(value === 'all' ? undefined : value)
-      }
-    >
-      <TabsList>
-        <TabsTrigger value="all">
-          All
-          <Badge variant="secondary" size="xs" className="ml-1.5">
-            {counts.all}
-          </Badge>
-        </TabsTrigger>
-        {statuses.map((status) => (
-          <TabsTrigger key={status.id} value={status.id}>
-            {status.name}
-            <Badge variant="outline" size="xs" className="ml-1.5">
-              {counts.byStatus[status.id] ?? 0}
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          onStatusChange(value === 'all' ? undefined : value)
+        }
+      >
+        <TabsList>
+          <TabsTrigger value="all">
+            All
+            <Badge variant="secondary" size="xs" className="ml-1.5">
+              {counts.all}
             </Badge>
           </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+          {statuses.map((status) => (
+            <TabsTrigger key={status.id} value={status.id}>
+              {status.name}
+              <Badge variant="outline" size="xs" className="ml-1.5">
+                {counts.byStatus[status.id] ?? 0}
+              </Badge>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      <ExpenseStructuredFilters
+        companyId={companyId}
+        filters={filters}
+        onChange={onFiltersChange}
+        onClear={onClearStructuredFilters}
+      />
+    </div>
   )
 }

@@ -1,5 +1,7 @@
 // @ts-nocheck
 
+import * as React from 'react'
+
 import { Badge } from '@/components/reui/badge'
 import {
   DropdownMenu,
@@ -10,30 +12,44 @@ import {
 import type { ExpenseStatus } from '@/lib/data/erp/expenses/types'
 
 import { useExpenseUpdate } from '../data/use-expense-update'
-import type { ExpenseRow } from '../ExpenseAdminTable.types'
+import type { ExpenseRow, StatusColorConfig } from '../ExpenseAdminTable.types'
 
 type StatusCellProps = {
   row: ExpenseRow
   companyId: string
   statuses: ExpenseStatus[]
+  statusColors?: StatusColorConfig[]
   readOnly?: boolean
+}
+
+function resolveStatusStyle(
+  label: string,
+  dbColor: string | null,
+  statusColors: StatusColorConfig[] = [],
+) {
+  const fromConfig = statusColors.find((c) => c.statusName === label)
+  if (fromConfig) {
+    return {
+      color: fromConfig.textColor,
+      backgroundColor: fromConfig.backgroundColor,
+      borderColor: fromConfig.backgroundColor,
+    }
+  }
+  if (dbColor) {
+    return { borderColor: dbColor, color: dbColor }
+  }
+  return undefined
 }
 
 function ExpenseStatusBadge({
   label,
-  color,
+  style,
 }: {
   label: string
-  color: string | null
+  style?: React.CSSProperties
 }) {
   return (
-    <Badge
-      variant="outline"
-      size="sm"
-      style={
-        color ? { borderColor: color, color } : undefined
-      }
-    >
+    <Badge variant="outline" size="sm" style={style}>
       {label}
     </Badge>
   )
@@ -43,16 +59,19 @@ export function StatusCell({
   row,
   companyId,
   statuses,
+  statusColors,
   readOnly,
 }: StatusCellProps) {
   const update = useExpenseUpdate(companyId)
+  const badgeStyle = resolveStatusStyle(
+    row.status,
+    row.statusColor,
+    statusColors,
+  )
 
   if (readOnly || statuses.length === 0) {
     return (
-      <ExpenseStatusBadge
-        label={row.status || '—'}
-        color={row.statusColor}
-      />
+      <ExpenseStatusBadge label={row.status || '—'} style={badgeStyle} />
     )
   }
 
@@ -65,7 +84,7 @@ export function StatusCell({
         >
           <ExpenseStatusBadge
             label={row.status || 'Set status'}
-            color={row.statusColor}
+            style={badgeStyle}
           />
         </button>
       </DropdownMenuTrigger>
@@ -78,7 +97,10 @@ export function StatusCell({
               update.mutate({ id: row.id, patch: { status_id: status.id } })
             }}
           >
-            <ExpenseStatusBadge label={status.name} color={status.color} />
+            <ExpenseStatusBadge
+              label={status.name}
+              style={resolveStatusStyle(status.name, status.color, statusColors)}
+            />
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
