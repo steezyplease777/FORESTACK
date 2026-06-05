@@ -21,6 +21,8 @@ import {
   IconBoxMultiple,
   IconChartBar,
   IconGitPullRequest,
+  IconCash,
+  IconReceipt,
   type Icon,
 } from "@tabler/icons-react";
 
@@ -137,6 +139,18 @@ const MODULE_ENTRIES: ModuleRegistryEntry[] = [
         title: "Sales Channels",
         url: "erp/sales-channels",
         icon: IconShoppingCart,
+      },
+      {
+        title: "Finance",
+        url: "erp/finance/expenses",
+        icon: IconCash,
+        items: [
+          {
+            title: "Expenses",
+            url: "erp/finance/expenses",
+            icon: IconReceipt,
+          },
+        ],
       },
     ],
   },

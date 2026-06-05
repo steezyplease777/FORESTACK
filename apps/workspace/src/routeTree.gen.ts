@@ -57,6 +57,7 @@ import { Route as CompanySlugAuthedErpPurchaseOrdersNewRouteImport } from './rou
 import { Route as CompanySlugAuthedCrmCustomersIdRouteImport } from './routes/$companySlug/_authed/crm/customers/$id'
 import { Route as CompanySlugAuthedCrmAllocationOrdersNewRouteImport } from './routes/$companySlug/_authed/crm/allocation-orders/new'
 import { Route as CompanySlugAuthedErpPurchaseOrdersIdIndexRouteImport } from './routes/$companySlug/_authed/erp/purchase-orders/$id/index'
+import { Route as CompanySlugAuthedErpFinanceExpensesIndexRouteImport } from './routes/$companySlug/_authed/erp/finance/expenses/index'
 import { Route as CompanySlugAuthedErpPurchaseOrdersIdEditRouteImport } from './routes/$companySlug/_authed/erp/purchase-orders/$id/edit'
 
 const CompanySlugRouteRoute = CompanySlugRouteRouteImport.update({
@@ -339,6 +340,12 @@ const CompanySlugAuthedErpPurchaseOrdersIdIndexRoute =
     path: '/purchase-orders/$id/',
     getParentRoute: () => CompanySlugAuthedErpRouteRoute,
   } as any)
+const CompanySlugAuthedErpFinanceExpensesIndexRoute =
+  CompanySlugAuthedErpFinanceExpensesIndexRouteImport.update({
+    id: '/finance/expenses/',
+    path: '/finance/expenses/',
+    getParentRoute: () => CompanySlugAuthedErpRouteRoute,
+  } as any)
 const CompanySlugAuthedErpPurchaseOrdersIdEditRoute =
   CompanySlugAuthedErpPurchaseOrdersIdEditRouteImport.update({
     id: '/purchase-orders/$id/edit',
@@ -393,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/$companySlug/pm/projects/': typeof CompanySlugAuthedPmProjectsIndexRoute
   '/$companySlug/wms/orders/': typeof CompanySlugAuthedWmsOrdersIndexRoute
   '/$companySlug/erp/purchase-orders/$id/edit': typeof CompanySlugAuthedErpPurchaseOrdersIdEditRoute
+  '/$companySlug/erp/finance/expenses/': typeof CompanySlugAuthedErpFinanceExpensesIndexRoute
   '/$companySlug/erp/purchase-orders/$id/': typeof CompanySlugAuthedErpPurchaseOrdersIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -436,6 +444,7 @@ export interface FileRoutesByTo {
   '/$companySlug/pm/projects': typeof CompanySlugAuthedPmProjectsIndexRoute
   '/$companySlug/wms/orders': typeof CompanySlugAuthedWmsOrdersIndexRoute
   '/$companySlug/erp/purchase-orders/$id/edit': typeof CompanySlugAuthedErpPurchaseOrdersIdEditRoute
+  '/$companySlug/erp/finance/expenses': typeof CompanySlugAuthedErpFinanceExpensesIndexRoute
   '/$companySlug/erp/purchase-orders/$id': typeof CompanySlugAuthedErpPurchaseOrdersIdIndexRoute
 }
 export interface FileRoutesById {
@@ -488,6 +497,7 @@ export interface FileRoutesById {
   '/$companySlug/_authed/pm/projects/': typeof CompanySlugAuthedPmProjectsIndexRoute
   '/$companySlug/_authed/wms/orders/': typeof CompanySlugAuthedWmsOrdersIndexRoute
   '/$companySlug/_authed/erp/purchase-orders/$id/edit': typeof CompanySlugAuthedErpPurchaseOrdersIdEditRoute
+  '/$companySlug/_authed/erp/finance/expenses/': typeof CompanySlugAuthedErpFinanceExpensesIndexRoute
   '/$companySlug/_authed/erp/purchase-orders/$id/': typeof CompanySlugAuthedErpPurchaseOrdersIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -539,6 +549,7 @@ export interface FileRouteTypes {
     | '/$companySlug/pm/projects/'
     | '/$companySlug/wms/orders/'
     | '/$companySlug/erp/purchase-orders/$id/edit'
+    | '/$companySlug/erp/finance/expenses/'
     | '/$companySlug/erp/purchase-orders/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -582,6 +593,7 @@ export interface FileRouteTypes {
     | '/$companySlug/pm/projects'
     | '/$companySlug/wms/orders'
     | '/$companySlug/erp/purchase-orders/$id/edit'
+    | '/$companySlug/erp/finance/expenses'
     | '/$companySlug/erp/purchase-orders/$id'
   id:
     | '__root__'
@@ -633,6 +645,7 @@ export interface FileRouteTypes {
     | '/$companySlug/_authed/pm/projects/'
     | '/$companySlug/_authed/wms/orders/'
     | '/$companySlug/_authed/erp/purchase-orders/$id/edit'
+    | '/$companySlug/_authed/erp/finance/expenses/'
     | '/$companySlug/_authed/erp/purchase-orders/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -978,6 +991,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanySlugAuthedErpPurchaseOrdersIdIndexRouteImport
       parentRoute: typeof CompanySlugAuthedErpRouteRoute
     }
+    '/$companySlug/_authed/erp/finance/expenses/': {
+      id: '/$companySlug/_authed/erp/finance/expenses/'
+      path: '/finance/expenses'
+      fullPath: '/$companySlug/erp/finance/expenses/'
+      preLoaderRoute: typeof CompanySlugAuthedErpFinanceExpensesIndexRouteImport
+      parentRoute: typeof CompanySlugAuthedErpRouteRoute
+    }
     '/$companySlug/_authed/erp/purchase-orders/$id/edit': {
       id: '/$companySlug/_authed/erp/purchase-orders/$id/edit'
       path: '/purchase-orders/$id/edit'
@@ -1039,6 +1059,7 @@ interface CompanySlugAuthedErpRouteRouteChildren {
   CompanySlugAuthedErpPurchaseOrdersNewRoute: typeof CompanySlugAuthedErpPurchaseOrdersNewRoute
   CompanySlugAuthedErpPurchaseOrdersIndexRoute: typeof CompanySlugAuthedErpPurchaseOrdersIndexRoute
   CompanySlugAuthedErpPurchaseOrdersIdEditRoute: typeof CompanySlugAuthedErpPurchaseOrdersIdEditRoute
+  CompanySlugAuthedErpFinanceExpensesIndexRoute: typeof CompanySlugAuthedErpFinanceExpensesIndexRoute
   CompanySlugAuthedErpPurchaseOrdersIdIndexRoute: typeof CompanySlugAuthedErpPurchaseOrdersIdIndexRoute
 }
 
@@ -1056,6 +1077,8 @@ const CompanySlugAuthedErpRouteRouteChildren: CompanySlugAuthedErpRouteRouteChil
       CompanySlugAuthedErpPurchaseOrdersIndexRoute,
     CompanySlugAuthedErpPurchaseOrdersIdEditRoute:
       CompanySlugAuthedErpPurchaseOrdersIdEditRoute,
+    CompanySlugAuthedErpFinanceExpensesIndexRoute:
+      CompanySlugAuthedErpFinanceExpensesIndexRoute,
     CompanySlugAuthedErpPurchaseOrdersIdIndexRoute:
       CompanySlugAuthedErpPurchaseOrdersIdIndexRoute,
   }

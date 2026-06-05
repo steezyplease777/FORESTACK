@@ -52,6 +52,15 @@ export function schemaFromModule(portal: PortalSlug): PortalSidebarSchema {
   const navItems = getModuleNavItems(portal) ?? [];
   const def = getModuleDefinition(portal);
 
+  const mapNavItem = (item: (typeof navItems)[number]) => ({
+    title: item.title,
+    url: item.url,
+    icon: item.icon,
+    activeMatch:
+      item.activeMatch ?? (item.url === portal ? "exact" : "prefix"),
+    items: item.items?.map(mapNavItem),
+  });
+
   return {
     brand: {
       kind: "custom",
@@ -61,12 +70,7 @@ export function schemaFromModule(portal: PortalSlug): PortalSidebarSchema {
       {
         kind: "items",
         label: def?.shortLabel,
-        items: navItems.map((item) => ({
-          title: item.title,
-          url: item.url,
-          icon: item.icon,
-          activeMatch: item.url === portal ? "exact" : "prefix",
-        })),
+        items: navItems.map(mapNavItem),
       },
     ],
     footer: [
