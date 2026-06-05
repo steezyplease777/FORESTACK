@@ -82,7 +82,7 @@ Same 14 column ids (with `relatedProject` not `project`). Widths/labels match So
 | `invoiceDate` | `DateCell.tsx` | Yes | **No** |
 | `submittedAt` | `DateCell.tsx` | Yes | No |
 | `direction` | `DirectionCell.tsx` | Yes | No |
-| `attributes` | `AttributesCell.tsx` (credit-card tiles, `+N`, ⋯ tooltip table; `useCreditCardsCatalog`) | No | No |
+| `attributes` | `AttributesCell.tsx` (credit-card tiles + ⋯ hover) | No | No |
 | `documents` | `DocumentsCell.tsx` | No | **Partial** (preview/upload when wired from page) |
 | `invoiceTags` | `TagsCell.tsx` (read-only badges) | No | **No** |
 | `relatedProject` | Plain `<span>` ~L514 | No | **No** |
@@ -128,12 +128,78 @@ Title · Category · Department · Invoice Due Date · Submitted At · Direction
 | Tags combobox + create | `InvoiceTagComboboxCell` | `TagsCell` read-only | **Missing** (P2) |
 | Invoice date picker | `EditableDateCell` | `DateCell` read-only | **Missing** (P1) |
 | Direction badge | `DirectionCell` | `DirectionCell` | **Done** |
-| Attributes tiles | `AttributesCell` + credit card catalog | Tiles + catalog (`getCreditCardsCatalog`); Tooltip vs HoverCard | **Done** (no editor tile styles) |
+| Attributes tiles | `AttributesCell` + credit card catalog | `AttributesCell` + `getCreditCardsCatalog` | **Done** (~85%) |
 | Documents upload/drop | `DocumentsCell` + `DocumentUploadDialog` | `DocumentsCell` + dialogs (page wires upload) | **Partial** |
 | Document preview | `DocumentPreviewDialog` | `DocumentPreviewDialog.tsx` | **Partial** |
 | Row ⋯ menu | `RowActionsMenu` + `NavigationAction` (~L6540) | `RowActionsCell` — disabled View/Edit stubs | **Missing** (P0) |
 | Read-only embed | `ReadOnlyContext` | `readOnly` prop (unused on route) | **Partial** |
 | Draggable row reorder | DnD block (~L7622) | Dropped | **N/A** |
+
+---
+
+## 4a. Attributes column (detailed)
+
+Softr source: `AttributesCell` ~L2890–2987, `useCreditCardsCatalog` ~L2521–2558, `parseCreditCardAttributeRefs` ~L2560–2584.
+
+### Data shape (`erp_expenses.attributes` jsonb)
+
+Read-only in the admin table. Primary formatted key:
+
+```json
+{
+  "credit_cards": [{ "id": "<erp_credit_cards.uuid>" }],
+  "payment_type": "CREDIT CARD",
+  "department": "Marketing",
+  "invoice_date": "2024-06-01",
+  "invoice_paid_date": null,
+  "softr_submitted_by_name": "Taylor Pursley"
+}
+```
+
+Legacy rows may use `[{ "label": "Holder · Chase •• 1234" }]` or plain strings instead of catalog IDs.
+
+### Catalog resolution
+
+Softr loads `erp_credit_cards` per company (stale 5 min):
+
+- `id, card_number, bank, company_user:app_company_users(org_user:app_organization_users(first_name, last_name, email))`
+- `Map<id, { title, last4, bankLabel, holderName }>` — `title` = `"{holder} · {bankLabel} •• {last4}"`
+- Bank labels via `CREDIT_CARD_BANK_LABEL_BY_ID` (AMEX → American Express, etc.)
+
+Forestack: `getCreditCardsCatalog` in `lib/data/erp/expenses/server.ts` (same embed via `company_user_id`), `useCreditCardsCatalog` hook, passed to table as `creditCardsById`.
+
+### Keys excluded from ⋯ panel
+
+| Key | Dedicated column |
+| --- | --- |
+| `payment_type` | Payment Type |
+| `department` | Department |
+| `invoice_date` | Invoice Date |
+| `invoice_paid_date` | (not in default cols) |
+| `softr_submitted_by_name` | Submitted By (Forestack only) |
+
+### Visual + interaction
+
+| Element | Softr | Forestack |
+| --- | --- | --- |
+| Credit-card tiles | Up to 4 × 28px `credit-card` icon buttons | Same (`IconCreditCard`, `ATTRIBUTES_CELL_VISIBLE = 4`) |
+| Overflow | `+N` text | Same |
+| ⋯ tile | `more-horizontal` when unmapped keys remain | `IconDots` + Field/Value table on hover |
+| Card hover | HoverCard: "Credit card", `{holder} · {bank}`, `*******{last4}` | Tooltip with same content |
+| Empty | `—` | `—` |
+| Editable | No | No |
+| Click | Hover only; `stopPropagation` on tiles | Same |
+
+### Remaining gaps (~15%)
+
+| Gap | Severity |
+| --- | --- |
+| HoverCard vs Tooltip styling | Low |
+| Block editor `attributeDisplayRows` tile overrides | Low (deferred) |
+| Catalog prefetch in route loader | Low |
+| Attributes sort/filter | N/A (Softr has none) |
+
+**Files:** `cells/AttributesCell.tsx`, `credit-card-catalog.ts`, `server.ts`, `expenses-page.tsx`.
 
 ---
 
@@ -245,7 +311,7 @@ Title · Category · Department · Invoice Due Date · Submitted At · Direction
 | `EditableDateCell` for invoice/due date | **P1** | Missing |
 | `titleContains` structured filter | **P2** | Missing |
 | `ProjectComboboxCell` + `InvoiceTagComboboxCell` | **P2** | Missing |
-| Attributes credit-card catalog tiles + uncategorized hover | **P2** | **Done** |
+| Attributes credit-card catalog tiles + uncategorized hover | **P2** | **Done** (~85%; see §4a) |
 | Bulk selection URL sync | **P2** | Missing |
 | External `?filters=` embed contract | **P2** | Missing |
 | Runtime column picker / editor column enable | **P2** | Missing |
@@ -316,14 +382,3 @@ Title · Category · Department · Invoice Due Date · Submitted At · Direction
 | **Doc path** | `apps/workspace/docs/expenses/softr-gap-analysis.md` (content above — not written in Ask mode) |
 | **Parity %** | **~48%** vs Softr source · **~55%** vs live MANAGE |
 | **Top 10 gaps** | Grouping · category/dept combobox · title Open/detail · row actions · select-all-matching · bulk export · bulk delete · payment-type edit · column resize/sticky actions · editable invoice date |
-
----
-
-## Attributes column (deep-dive)
-
-See commit `3b26764` and `cells/AttributesCell.tsx`. Softr loads `erp_credit_cards` into a per-company map; Forestack mirrors via `getCreditCardsCatalog` / `useCreditCardsCatalog` on the expenses page.
-
-**Parity ~85%:** credit-card icon tiles (max 4), `+N` overflow, ⋯ tile with Field/Value table for unmapped jsonb keys (excludes `payment_type`, `department`, `invoice_date`, `invoice_paid_date`, and Forestack `softr_submitted_by_name`). Hover uses Radix Tooltip instead of Softr HoverCard; `attributeDisplayRows` editor styling not ported.
-
-**Optional follow-ups:** preload catalog in route loader; port tile style overrides into `ExpenseTableConfig`.
-
