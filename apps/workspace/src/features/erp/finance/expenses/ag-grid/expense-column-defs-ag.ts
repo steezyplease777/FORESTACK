@@ -15,6 +15,7 @@ import {
   ActionsCellRenderer,
   createExpenseCellRenderer,
 } from './expense-cell-renderers'
+import { ExpenseColumnHeader } from './expense-header-component'
 
 const HOVER_CARD_COLUMN_IDS = new Set<ExpenseTableColumnId>([
   'attributes',
@@ -40,6 +41,9 @@ export function buildExpenseColumnDefs({
       width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
       minWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
       maxWidth: EXPENSE_CHECKBOX_COLUMN_WIDTH,
+      flex: 0,
+      suppressSizeToFit: true,
+      suppressAutoSize: true,
       pinned: 'left',
       lockPinned: true,
       suppressMovable: true,
@@ -65,9 +69,15 @@ export function buildExpenseColumnDefs({
       headerName: meta?.label ?? columnId,
       width: meta?.width ?? 100,
       minWidth: meta?.width ?? 100,
+      flex: 0,
+      suppressSizeToFit: true,
+      suppressAutoSize: true,
       resizable: true,
       sortable: sortable && !!resolvedSort,
       comparator: () => 0,
+      headerComponent: ExpenseColumnHeader,
+      suppressHeaderMenuButton: true,
+      suppressHeaderFilterButton: true,
       cellRenderer: createExpenseCellRenderer(columnId),
       cellClass:
         meta?.align === 'right'
@@ -85,6 +95,9 @@ export function buildExpenseColumnDefs({
     width: EXPENSE_ACTIONS_COLUMN_WIDTH,
     minWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
     maxWidth: EXPENSE_ACTIONS_COLUMN_WIDTH,
+    flex: 0,
+    suppressSizeToFit: true,
+    suppressAutoSize: true,
     pinned: 'right',
     lockPinned: true,
     suppressMovable: true,

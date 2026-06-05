@@ -4,6 +4,7 @@ import * as React from 'react'
 import {
   AllCommunityModule,
   ModuleRegistry,
+  type ColDef,
   type GridApi,
   type FirstDataRenderedEvent,
   type GridReadyEvent,
@@ -20,7 +21,6 @@ import {
   EXPENSE_ACTIONS_COLUMN_WIDTH,
   EXPENSE_CHECKBOX_COLUMN_WIDTH,
   EXPENSE_COLUMN_DEFS,
-  expenseTableMinWidth,
 } from '../config/column-defs'
 import {
   sortColumnForTableColumn,
@@ -85,9 +85,17 @@ export function ExpenseAgGrid({
     [config, bulkEnabled, readOnly],
   )
 
-  const tableMinWidth = React.useMemo(
-    () => expenseTableMinWidth(config.columns, undefined, { bulkEnabled }),
-    [config.columns, bulkEnabled],
+  const defaultColDef = React.useMemo<ColDef>(
+    () => ({
+      flex: 0,
+      suppressSizeToFit: true,
+      suppressAutoSize: true,
+      resizable: true,
+      sortable: false,
+      suppressHeaderMenuButton: true,
+      suppressHeaderFilterButton: true,
+    }),
+    [],
   )
 
   const uploadEnabled =
@@ -160,7 +168,7 @@ export function ExpenseAgGrid({
       state: config.columns.map((columnId) => ({
         colId: columnId,
         width: EXPENSE_COLUMN_DEFS[columnId]?.width ?? 100,
-        flex: null,
+        flex: 0,
       })),
       applyOrder: false,
     })
@@ -170,7 +178,7 @@ export function ExpenseAgGrid({
           {
             colId: '__select__',
             width: EXPENSE_CHECKBOX_COLUMN_WIDTH,
-            flex: null,
+            flex: 0,
           },
         ],
       })
@@ -180,7 +188,7 @@ export function ExpenseAgGrid({
         {
           colId: '__actions__',
           width: EXPENSE_ACTIONS_COLUMN_WIDTH,
-          flex: null,
+          flex: 0,
         },
       ],
     })
@@ -260,44 +268,43 @@ export function ExpenseAgGrid({
   return (
     <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
       <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
-        <div
+        <AgGridReact<ExpenseRow>
+          ref={gridRef}
+          theme="legacy"
           className="expense-ag-grid ag-theme-expense-shadcn h-full w-full text-sm"
-          style={{ height: '100%', minWidth: tableMinWidth }}
-        >
-          <AgGridReact<ExpenseRow>
-            ref={gridRef}
-            theme="legacy"
-            rowData={rows}
-            columnDefs={columnDefs}
-            context={gridContext}
-            getRowId={(params) => params.data.id}
-            rowHeight={EXPENSE_ROW_HEIGHT}
-            headerHeight={EXPENSE_ROW_HEIGHT}
-            domLayout="normal"
-            suppressCellFocus
-            suppressRowHoverHighlight={false}
-            animateRows={false}
-            enableCellTextSelection
-            getRowClass={getRowClass}
-            popupParent={
-              typeof document !== 'undefined' ? document.body : undefined
-            }
-            rowSelection={
-              bulkEnabled
-                ? {
-                    mode: 'multiRow',
-                    checkboxes: false,
-                    headerCheckbox: false,
-                    enableClickSelection: false,
-                  }
-                : undefined
-            }
-            onGridReady={handleGridReady}
-            onFirstDataRendered={handleFirstDataRendered}
-            onSortChanged={handleSortChanged}
-            onSelectionChanged={handleSelectionChanged}
-          />
-        </div>
+          rowData={rows}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          context={gridContext}
+          getRowId={(params) => params.data.id}
+          rowHeight={EXPENSE_ROW_HEIGHT}
+          headerHeight={EXPENSE_ROW_HEIGHT}
+          domLayout="normal"
+          alwaysShowHorizontalScroll
+          suppressColumnVirtualisation={false}
+          suppressCellFocus
+          suppressRowHoverHighlight={false}
+          animateRows={false}
+          enableCellTextSelection
+          getRowClass={getRowClass}
+          popupParent={
+            typeof document !== 'undefined' ? document.body : undefined
+          }
+          rowSelection={
+            bulkEnabled
+              ? {
+                  mode: 'multiRow',
+                  checkboxes: false,
+                  headerCheckbox: false,
+                  enableClickSelection: false,
+                }
+              : undefined
+          }
+          onGridReady={handleGridReady}
+          onFirstDataRendered={handleFirstDataRendered}
+          onSortChanged={handleSortChanged}
+          onSelectionChanged={handleSelectionChanged}
+        />
       </div>
 
       <DocumentUploadDialog

@@ -1,14 +1,16 @@
 /**
  * Expense spreadsheet — shadcn chrome on AG Grid (legacy CSS theming).
- * Mirrors ExpenseAdminTable.legacy.tsx: border-separate grid, sticky pins, muted hover.
+ * Pixel-match ExpenseAdminTable.legacy.tsx inside bg-card container.
+ *
+ * Use --card (white) not --background (page cream) — table lives in bg-card.
  */
 .ag-theme-expense-shadcn {
-  /* Core palette — shadcn tokens */
-  --ag-background-color: var(--background);
-  --ag-data-background-color: var(--background);
+  /* Core palette — card surface (white), not page background */
+  --ag-background-color: var(--card);
+  --ag-data-background-color: var(--card);
   --ag-foreground-color: var(--foreground);
   --ag-secondary-foreground-color: var(--muted-foreground);
-  --ag-header-background-color: var(--background);
+  --ag-header-background-color: var(--card);
   --ag-header-foreground-color: var(--foreground);
   --ag-disabled-foreground-color: color-mix(
     in srgb,
@@ -20,24 +22,28 @@
   --ag-border-color: color-mix(in srgb, var(--border) 70%, transparent);
   --ag-secondary-border-color: color-mix(in srgb, var(--border) 70%, transparent);
   --ag-row-border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  --ag-row-border-style: solid;
+  --ag-row-border-width: 1px;
   --ag-cell-horizontal-border: solid color-mix(in srgb, var(--border) 70%, transparent);
   --ag-header-column-separator-color: color-mix(in srgb, var(--border) 70%, transparent);
   --ag-header-column-separator-display: block;
   --ag-header-column-separator-height: 100%;
   --ag-header-column-separator-width: 1px;
+  --ag-borders: none;
+  --ag-borders-critical: solid 1px;
 
-  /* No zebra — flat background like legacy table */
-  --ag-odd-row-background-color: var(--background);
+  /* No zebra — flat white like legacy table */
+  --ag-odd-row-background-color: var(--card);
 
   /* Hover / selection — matches legacy group-hover:bg-muted/40 and bg-muted/30 */
-  --ag-row-hover-color: color-mix(in srgb, var(--muted) 40%, var(--background));
+  --ag-row-hover-color: color-mix(in srgb, var(--muted) 40%, var(--card));
   --ag-selected-row-background-color: color-mix(
     in srgb,
     var(--muted) 30%,
-    var(--background)
+    var(--card)
   );
   --ag-column-hover-color: transparent;
-  --ag-header-cell-hover-background-color: transparent;
+  --ag-header-cell-hover-background-color: var(--card);
 
   /* Typography — inherit app font, text-sm body / text-xs headers */
   --ag-font-family: inherit;
@@ -54,7 +60,7 @@
   --ag-checkbox-checked-color: var(--primary);
   --ag-checkbox-unchecked-color: var(--border);
   --ag-checkbox-indeterminate-color: var(--primary);
-  --ag-checkbox-background-color: var(--background);
+  --ag-checkbox-background-color: var(--card);
   --ag-checkbox-border-radius: 4px;
   --ag-input-focus-border-color: var(--ring);
 
@@ -63,6 +69,7 @@
   --ag-border-radius: 0;
   --ag-card-shadow: none;
   --ag-popup-shadow: none;
+  --ag-wrapper-background-color: var(--card);
 
   /* Sort + resize affordances */
   --ag-icon-size: 12px;
@@ -75,73 +82,94 @@
   color: var(--foreground);
   font-size: 0.875rem;
   line-height: 1.25rem;
+  background-color: var(--card);
 }
 
-/* Strip AG Grid wrapper chrome — card border comes from expenses-page */
+/* ── Strip AG Grid wrapper chrome ── */
+.ag-theme-expense-shadcn.ag-root-wrapper,
 .ag-theme-expense-shadcn .ag-root-wrapper {
-  border: none;
-  border-radius: 0;
-  background-color: var(--background);
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-color: var(--card) !important;
 }
 
-.ag-theme-expense-shadcn .ag-root-wrapper-body {
-  background-color: var(--background);
+.ag-theme-expense-shadcn .ag-root-wrapper-body,
+.ag-theme-expense-shadcn .ag-root,
+.ag-theme-expense-shadcn .ag-body-viewport,
+.ag-theme-expense-shadcn .ag-center-cols-viewport,
+.ag-theme-expense-shadcn .ag-center-cols-container,
+.ag-theme-expense-shadcn .ag-body-horizontal-scroll-viewport,
+.ag-theme-expense-shadcn .ag-floating-top-viewport,
+.ag-theme-expense-shadcn .ag-floating-bottom-viewport {
+  background-color: var(--card) !important;
 }
 
-/* Header — text-xs font-medium like legacy thClass */
+/* ── Header — white flush with card, text-xs font-medium ── */
+.ag-theme-expense-shadcn .ag-header,
+.ag-theme-expense-shadcn .ag-header-viewport,
+.ag-theme-expense-shadcn .ag-header-container,
+.ag-theme-expense-shadcn .ag-header-row,
+.ag-theme-expense-shadcn .ag-pinned-left-header,
+.ag-theme-expense-shadcn .ag-pinned-right-header {
+  background-color: var(--card) !important;
+}
+
 .ag-theme-expense-shadcn .ag-header {
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  background-color: var(--background);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent) !important;
 }
 
-.ag-theme-expense-shadcn .ag-header-cell {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--foreground);
-  padding-inline: 8px;
+.ag-theme-expense-shadcn .ag-header-cell,
+.ag-theme-expense-shadcn .ag-header-group-cell {
+  background-color: var(--card) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: var(--foreground) !important;
+  padding-inline: 8px !important;
+  border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent) !important;
 }
 
 .ag-theme-expense-shadcn .ag-header-cell-label {
   gap: 6px;
+  width: 100%;
 }
 
-/* Sort icons — subtle chevrons like legacy SortableHeader */
-.ag-theme-expense-shadcn .ag-sort-indicator-container {
-  gap: 0;
+/* Hide AG Grid default sort icons — custom header renders chevrons */
+.ag-theme-expense-shadcn .ag-sort-indicator-container,
+.ag-theme-expense-shadcn .ag-header-cell-sortable .ag-sort-indicator-icon {
+  display: none !important;
 }
 
-.ag-theme-expense-shadcn .ag-sort-indicator-icon {
-  opacity: 0.3;
+/* ── Body cells — legacy tdClass: h-12 px-2 align-middle border-r border-b ── */
+.ag-theme-expense-shadcn .ag-row {
+  background-color: var(--card) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent) !important;
 }
 
-.ag-theme-expense-shadcn .ag-header-cell-sorted-asc .ag-sort-indicator-icon,
-.ag-theme-expense-shadcn .ag-header-cell-sorted-desc .ag-sort-indicator-icon {
-  opacity: 1;
-}
-
-.ag-theme-expense-shadcn .ag-icon-asc::before,
-.ag-theme-expense-shadcn .ag-icon-desc::before {
-  font-size: 12px;
-}
-
-/* Body cells — vertical center, truncate like legacy tdClass */
 .ag-theme-expense-shadcn .ag-cell {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
   overflow: hidden;
-  background-color: var(--background);
-  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  background-color: var(--card) !important;
+  border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent) !important;
+  padding-inline: 8px !important;
+  line-height: 1.25rem;
 }
 
 .ag-theme-expense-shadcn .ag-cell.expense-ag-cell-overflow-visible {
-  overflow: visible;
+  overflow: visible !important;
+}
+
+.ag-theme-expense-shadcn .ag-cell-wrapper {
+  width: 100%;
+  min-width: 0;
 }
 
 /* Checkbox column — 40px, no right border (legacy checkboxTh/td) */
 .ag-theme-expense-shadcn .expense-ag-checkbox-header,
 .ag-theme-expense-shadcn .expense-ag-checkbox-cell {
-  justify-content: center;
-  padding-inline: 8px;
+  justify-content: center !important;
+  padding-inline: 8px !important;
   border-right: none !important;
 }
 
@@ -151,18 +179,18 @@
 }
 
 .ag-theme-expense-shadcn .ag-checkbox-input-wrapper {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background-color: var(--background);
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--border) !important;
+  background-color: var(--card) !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
 }
 
 .ag-theme-expense-shadcn .ag-checkbox-input-wrapper.ag-checked,
 .ag-theme-expense-shadcn .ag-checkbox-input-wrapper.ag-indeterminate {
-  background-color: var(--primary);
-  border-color: var(--primary);
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
 }
 
 .ag-theme-expense-shadcn .ag-checkbox-input-wrapper::after {
@@ -173,30 +201,30 @@
 /* Pinned right actions — solid bg + left edge shadow (legacy actionsTh/td) */
 .ag-theme-expense-shadcn .ag-pinned-right-header,
 .ag-theme-expense-shadcn .ag-pinned-right-cols-container .ag-cell {
-  background-color: var(--background);
-  border-left: 1px solid var(--border);
-  border-right: none;
+  background-color: var(--card) !important;
+  border-left: 1px solid var(--border) !important;
+  border-right: none !important;
   box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.14);
 }
 
 .ag-theme-expense-shadcn .expense-ag-actions-header,
 .ag-theme-expense-shadcn .expense-ag-actions-cell {
-  justify-content: center;
-  padding-inline: 8px;
+  justify-content: center !important;
+  padding-inline: 8px !important;
 }
 
 .ag-theme-expense-shadcn
   .ag-pinned-right-cols-container
   .ag-row-hover
   .ag-cell {
-  background-color: color-mix(in srgb, var(--muted) 40%, var(--background));
+  background-color: color-mix(in srgb, var(--muted) 40%, var(--card)) !important;
 }
 
 .ag-theme-expense-shadcn
   .ag-pinned-right-cols-container
   .ag-row-selected
   .ag-cell {
-  background-color: color-mix(in srgb, var(--muted) 30%, var(--background));
+  background-color: color-mix(in srgb, var(--muted) 30%, var(--card)) !important;
 }
 
 /* Pinned left (checkbox) — opaque bg on hover/selection */
@@ -204,14 +232,14 @@
   .ag-pinned-left-cols-container
   .ag-row-hover
   .expense-ag-checkbox-cell {
-  background-color: color-mix(in srgb, var(--muted) 40%, var(--background));
+  background-color: color-mix(in srgb, var(--muted) 40%, var(--card)) !important;
 }
 
 .ag-theme-expense-shadcn
   .ag-pinned-left-cols-container
   .ag-row-selected
   .expense-ag-checkbox-cell {
-  background-color: color-mix(in srgb, var(--muted) 30%, var(--background));
+  background-color: color-mix(in srgb, var(--muted) 30%, var(--card)) !important;
 }
 
 /* Column resize handle — primary on hover like legacy ColumnResizeHandle */
@@ -226,13 +254,22 @@
   background-color: var(--primary);
 }
 
-/* Row hover on unpinned cells */
+/* Row hover / selection on center columns */
 .ag-theme-expense-shadcn .ag-center-cols-container .ag-row-hover .ag-cell {
-  background-color: color-mix(in srgb, var(--muted) 40%, var(--background));
+  background-color: color-mix(in srgb, var(--muted) 40%, var(--card)) !important;
 }
 
 .ag-theme-expense-shadcn .ag-center-cols-container .ag-row-selected .ag-cell {
-  background-color: color-mix(in srgb, var(--muted) 30%, var(--background));
+  background-color: color-mix(in srgb, var(--muted) 30%, var(--card)) !important;
+}
+
+/* Force horizontal scroll when columns exceed viewport */
+.ag-theme-expense-shadcn .ag-body-horizontal-scroll {
+  display: flex !important;
+}
+
+.ag-theme-expense-shadcn .ag-body-horizontal-scroll-viewport {
+  overflow-x: scroll !important;
 }
 
 /* Subtle scrollbars */
@@ -256,8 +293,8 @@
   border-radius: 9999px;
 }
 
-/* Hide header menu buttons — not used in expense table */
+/* Hide header menu / filter buttons — not used in expense table */
 .ag-theme-expense-shadcn .ag-header-cell-menu-button,
 .ag-theme-expense-shadcn .ag-header-cell-filter-button {
-  display: none;
+  display: none !important;
 }
