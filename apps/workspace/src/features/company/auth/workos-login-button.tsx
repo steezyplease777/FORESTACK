@@ -6,7 +6,7 @@ import {
   type WorkOSConnectionConfig,
 } from '@/lib/auth/workos'
 import { buildWorkOsRedirectUri } from '@/lib/auth/workos/redirect-uri'
-import { WorkOSNotConfiguredError } from '@/lib/auth/workos/types'
+import { isWorkOsNotConfiguredError } from '@/lib/auth/workos/types'
 
 type WorkOSLoginButtonProps = {
   companySlug: string
@@ -49,8 +49,12 @@ export function WorkOSLoginButton({
       window.location.assign(url)
     } catch (err: unknown) {
       setLoading(false)
-      if (err instanceof WorkOSNotConfiguredError) {
-        setError('SSO is not configured for this workspace yet.')
+      if (isWorkOsNotConfiguredError(err)) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'WorkOS is not configured. Set WORKOS_API_KEY and WORKOS_CLIENT_ID.',
+        )
         return
       }
       setError(err instanceof Error ? err.message : 'Unable to start SSO.')

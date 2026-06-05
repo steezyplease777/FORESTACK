@@ -7,7 +7,7 @@ import { buildWorkOsRedirectUri } from '@/lib/auth/workos/redirect-uri'
 import { resolveCompanyBySlug } from '@/lib/providers/tenant'
 import { tenantPostAuthRedirect } from '@/lib/routing/tenant-post-auth-redirect'
 import { safeRelativeRedirectPath } from '@/lib/utils/safe-redirect'
-import { WorkOSNotConfiguredError } from '@/lib/auth/workos/types'
+import { isWorkOsNotConfiguredError } from '@/lib/auth/workos/types'
 
 type WorkOSCallbackSearch = {
   code?: string
@@ -81,8 +81,14 @@ const processCallback = createServerFn({ method: 'GET' })
       const next = decoded?.next ?? '/'
       return { ok: true as const, next }
     } catch (err: unknown) {
-      if (err instanceof WorkOSNotConfiguredError) {
-        return { ok: false as const, message: err.message }
+      if (isWorkOsNotConfiguredError(err)) {
+        return {
+          ok: false as const,
+          message:
+            err instanceof Error
+              ? err.message
+              : 'WorkOS is not configured. Set WORKOS_API_KEY and WORKOS_CLIENT_ID.',
+        }
       }
       return {
         ok: false as const,

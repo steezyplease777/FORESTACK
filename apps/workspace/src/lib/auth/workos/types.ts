@@ -54,3 +54,13 @@ export class WorkOSNotConfiguredError extends Error {
     this.name = 'WorkOSNotConfiguredError'
   }
 }
+
+/** Server-fn errors lose their class across the wire; match by name or message too. */
+export function isWorkOsNotConfiguredError(err: unknown): boolean {
+  return (
+    err instanceof WorkOSNotConfiguredError ||
+    (err instanceof Error &&
+      (err.name === 'WorkOSNotConfiguredError' ||
+        err.message.includes('WorkOS is not configured')))
+  )
+}

@@ -27,6 +27,7 @@ export type { ResolvedOrgIdp } from '@/lib/auth/workos/resolve-org-idp'
 
 export {
   WorkOSNotConfiguredError,
+  isWorkOsNotConfiguredError,
   workOsConfigFromRow,
   type WorkOSAuthorizeInput,
   type WorkOSConnectionConfig,
